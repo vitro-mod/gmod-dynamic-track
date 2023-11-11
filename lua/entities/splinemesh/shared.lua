@@ -1,0 +1,229 @@
+ENT.Type 			= "anim"
+ENT.Base 			= "base_anim"
+ENT.PrintName		= "Physics SplineMesh"
+ENT.Author			= "vitro_mod"
+
+ENT.Spawnable		= false
+ENT.AdminSpawnable	= false
+
+if SERVER then
+    ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
+    ENT.MeshNum = 3
+    ENT.RADIUS = 250
+    ENT.ANGLE = -45
+    ENT.LENGTH = 50
+    ENT.CURVE = false
+    ENT.ROLL = 0---6.75
+end
+
+function ENT:Initialize()
+    if SERVER then
+        self:SetNW2String('Model', self.Model)
+        self:SetNW2Int('MeshNum', self.MeshNum)
+        self:SetNW2Float('Radius', self.RADIUS)
+        self:SetNW2Float('Angle', self.ANGLE)
+        self:SetNW2Float('Length', self.LENGTH)
+        self:SetNW2Bool('IsCurve', self.CURVE)
+        self:SetNW2Float('Roll', self.ROLL)
+        self.Model = Model(self.Model)
+    elseif CLIENT then
+        self.Model = Model(self:GetNW2String("Model"))
+        self.MeshNum = self:GetNW2Int("MeshNum")
+        self.RADIUS = self:GetNW2Float("Radius")
+        self.ANGLE = self:GetNW2Float("Angle")
+        self.LENGTH = self:GetNW2Float("Length")
+        self.CURVE = self:GetNW2Bool("IsCurve")
+        self.ROLL = self:GetNW2Float("Roll")
+    end
+
+    self:BuildSegmentMatricies()
+    self:SetModel( self.Model )
+    self:PhysicsInit(SOLID_VPHYSICS)
+
+    if CLIENT then
+        self:CreateMesh()
+        --self:SetRenderBounds( self.Mins, self.Maxs )
+        self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
+
+        self:DrawShadow( false )
+        self.wireframe = Material( "editor/wireframe" )
+        local color = self.wireframe:GetVector('$color')
+        color:SetUnpacked(1,1,0)
+        self.wireframe:SetVector('$color', color)
+        self.collisionMeshes = {}
+        self.colors = {}
+        self.defaultColor = Vector()
+        self.defaultColor:Random(0,1)
+
+        self.RenderMatrix = self:GetWorldTransformMatrix()
+        if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
+            self.RenderMatrix = Matrix() -- otherwise we multiply on zero matrix and model disappears
+        end
+    end
+
+    local scaledSegment = self.length / self.segments
+    local scale = scaledSegment / self.Maxs.y
+
+    self.convexes = self:GetPhysicsObject():GetMeshConvexes()
+    self.convexesNum = #self.convexes
+    for k,v in pairs(self.convexes) do
+        self.convexes[k] = {verticies = v}
+        self.convexes[k] = self:DeformMesh(self.convexes[k])
+        self.convexes[k] = self.convexes[k].verticies
+    end
+
+    self.physics = {}
+    self.chunkPhysics = {}
+    if InfMap then
+        self.InfMapOffsets = {}
+        InfMap.filter['splinemesh'] = true
+        InfMap.filter['splinemesh_clone'] = true
+        self.ChunkKey = InfMap.ChunkToText(self.CHUNK_OFFSET)
+        self.clones = {}
+    end
+
+
+    local newConvexes = {}
+    for i,matrix in pairs(self.matricies) do
+        for k,convex in pairs(self.convexes) do
+            local currentSegmentConvex = (i - 1) * self.convexesNum + k
+            newConvexes[currentSegmentConvex] = table.CopyAV(convex)
+            self.physics[currentSegmentConvex] = {}
+            for k2,vertex in pairs(newConvexes[currentSegmentConvex]) do
+                self.physics[currentSegmentConvex][k2] = vertex.pos
+                vertex.pos:Rotate(matrix:GetAngles())
+                vertex.pos:Add(matrix:GetTranslation())
+                if InfMap then
+                    local wrappedpos, deltachunk = InfMap.localize_vector(vertex.pos)
+                    local chunkKey = InfMap.ChunkToText(deltachunk)
+                    if CLIENT then
+                        self.colors[chunkKey] = Vector()
+                        self.colors[chunkKey]:Random(0,1)
+                    end
+                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                    if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
+                        table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
+                    end
+
+                    local prev_source_bound = 2 * InfMap.chunk_size - 16384
+
+                    if wrappedpos.x <= -prev_source_bound then
+                        local chunkKey = InfMap.ChunkToText(deltachunk - Vector(1, 0, 0))
+                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
+                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
+                        end
+                    end
+                    if wrappedpos.x >= prev_source_bound then
+                        local chunkKey = InfMap.ChunkToText(deltachunk + Vector(1, 0, 0))
+                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
+                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
+                        end
+                    end
+                    if wrappedpos.y <= -prev_source_bound then
+                        local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 1, 0))
+                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
+                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
+                        end
+                    end
+                    if wrappedpos.y >= prev_source_bound then
+                        local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 1, 0))
+                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
+                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
+                        end
+                    end
+                    if CLIENT then
+                        self.collisionMeshes[currentSegmentConvex] = Mesh()
+                        self.collisionMeshes[currentSegmentConvex]:BuildFromTriangles(newConvexes[currentSegmentConvex])
+                    end
+                    if chunkKey == self.ChunkKey then
+                        -- self.chunkPhysics[currentSegmentConvex] = self.chunkPhysics[currentSegmentConvex] || {}
+                        -- self.chunkPhysics[currentSegmentConvex][k2] = vertex.pos
+
+                        self.chunkPhysics[currentSegmentConvex] = SplineMesh.PrepareConvexes(newConvexes[currentSegmentConvex])
+                    end
+                end
+            end
+        end
+    end
+
+    if CLIENT then
+        self:PhysicsDestroy()
+    end
+
+    if SERVER then
+        if InfMap then
+            for chunkKey,v in pairs(self.InfMapOffsets) do
+                if chunkKey == self.ChunkKey then continue end
+                local e = ents.Create("splinemesh_clone")
+                if ( !IsValid( e ) ) then return end -- Safety first
+                e.parent = self
+                table.insert(self.clones, e)
+                e.chunkKey = chunkKey
+                print(e)
+                e:SetPos(self:GetPos())
+                e:Spawn()
+            end
+        end
+
+        self.convexes = newConvexes
+
+        local success = self:PhysicsInitMultiConvex( self.physics )
+        -- local success = self:PhysicsFromMesh( self.chunkPhysics )
+        
+        self:GetPhysicsObject():EnableMotion( false )
+        self:GetPhysicsObject():SetMass(500000)
+        self:GetPhysicsObject():AddGameFlag(FVPHYSICS_CONSTRAINT_STATIC)
+        self:GetPhysicsObject():AddGameFlag(FVPHYSICS_NO_SELF_COLLISIONS)
+        self:SetSolid( SOLID_VPHYSICS ) -- Setting the solidity
+        self:SetMoveType( SOLID_VPHYSICS ) -- Setting the movement type
+        self:EnableCustomCollisions( true ) -- Enabling the custom collision mesh
+    end
+end
+
+function ENT:BuildSegmentMatricies()
+
+    local metersInUnits = 0.01905 --0.0254*0.75
+    self.radius = self.RADIUS / metersInUnits
+    self.length = self.LENGTH / metersInUnits
+
+	self.MESHes = util.GetModelMeshes( self.Model )
+	if ( !self.MESHes ) then return end
+	self.MESH = self.MESHes[ self.MeshNum ]
+
+    local min, max = SplineMesh.GetBoundingBox(self.MESH)
+
+    self.Mins = min
+    self.Maxs = max
+
+    self.segment = max.y
+
+    -- local transform = self:GetWorldTransformMatrix()
+    local transform = Matrix()
+
+    if self.CURVE then 
+        local arc = math.rad(math.abs(self.ANGLE)) * self.radius
+
+        self.segments = math.Round(arc / self.segment)
+        if self.segments == 0 then self.segments = 1 end
+        self.bezierSpline = SplineMesh.ApproximateArc(self.ANGLE / self.segments, self.radius)
+        self.matricies, self.endMatrix = SplineMesh.ArcSegments(self.ANGLE / self.segments, self.bezierSpline.endPos, self.segments)
+    else
+        self.segments = math.Round(self.length / self.segment)
+        if self.segments == 0 then self.segments = 1 end
+        self.matricies, self.endMatrix = SplineMesh.StraightSegments(self.length, self.segments)
+    end
+end
+
+function ENT:DeformMesh(MESH)
+    if self.CURVE then
+        MESH = SplineMesh.ArcDeform(MESH, self.bezierSpline, self.segment, self.ROLL)
+    else
+        MESH = SplineMesh.StraightDeform(MESH, (self.length / self.segments) / self.segment)
+    end
+
+    return MESH
+end
