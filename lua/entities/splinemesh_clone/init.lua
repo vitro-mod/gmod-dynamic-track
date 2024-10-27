@@ -3,17 +3,17 @@ include('shared.lua')
 function ENT:Initialize()
     
     if !InfMap then return end
-    InfMap.prop_update_chunk(self, InfMap.TextToChunk(self.chunkKey))
+    self.chunkOffset = InfMap.TextToChunk(self.chunkKey)
+    InfMap.prop_update_chunk(self, self.chunkOffset)
     self:PhysicsInit(SOLID_VPHYSICS)
 
     self.chunkPhysics = {}
+
     local i = 1
-    for k,convex in pairs(self.parent.InfMapOffsets[self.chunkKey]) do
+    for convex in pairs(self.parent.InfMapOffsets[self.chunkKey]) do
         self.chunkPhysics[i] = {}
         for k2,vertex in pairs(self.parent.physics[convex]) do
-            -- print(vertex)
-            self.chunkPhysics[i][k2] = Vector(vertex:Unpack())
-            -- self.chunkPhysics[i][k2], co = InfMap.localize_vector(self.chunkPhysics[i][k2])
+            self.chunkPhysics[i][k2] = Vector(vertex)
             self.chunkPhysics[i][k2]:Sub(self.CHUNK_OFFSET * 2 * InfMap.chunk_size)
         end
         i = i + 1

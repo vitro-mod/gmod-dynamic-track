@@ -5,9 +5,9 @@ function table.CopyAV( t, lookup_table )
 	setmetatable( copy, debug.getmetatable( t ) )
 	for i, v in pairs( t ) do
 		if ( isvector( v ) ) then
-			copy[ i ] = Vector( v:Unpack() )
+			copy[ i ] = Vector( v )
 		elseif ( isangle( v ) ) then
-			copy[ i ] = Angle( v:Unpack() )
+			copy[ i ] = Angle( v )
 		elseif ( !istable( v ) ) then
 			copy[ i ] = v
 		else

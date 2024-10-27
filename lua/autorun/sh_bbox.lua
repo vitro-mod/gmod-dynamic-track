@@ -23,3 +23,11 @@ SplineMesh.GetBoundingBox = function(mesh)
 
     return min, max
 end
+
+SplineMesh.RotateXY = function(mesh)
+    for k,v in pairs (mesh.verticies) do
+        local x = v.pos.x
+        v.pos.x = v.pos.y
+        v.pos.y = -x
+    end
+end

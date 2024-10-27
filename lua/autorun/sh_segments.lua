@@ -20,8 +20,7 @@ SplineMesh.ArcSegments = function(angle, pos, segments)
         matricies[i] = m
     end
 
-    local endMatrix = Matrix()
-    endMatrix:SetUnpacked(matricies[segments]:Unpack())
+    local endMatrix = Matrix(matricies[segments])
     endMatrix:Translate(pos)
     endMatrix:Rotate(Angle(0, isRight and -ang or ang))
 
@@ -41,8 +40,7 @@ SplineMesh.StraightSegments = function(length, segments)
         matricies[i] = m
     end
 
-    local endMatrix = Matrix()
-    endMatrix:SetUnpacked(matricies[segments]:Unpack())
+    local endMatrix = Matrix(matricies[segments])
     endMatrix:Translate(Vector(0, segmentLength, 0))
 
     return matricies, endMatrix

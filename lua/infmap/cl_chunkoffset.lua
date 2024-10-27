@@ -1,6 +1,7 @@
 SplineMesh = SplineMesh or {}
 SplineMesh.RenderOffset = Matrix()
 
+hook.Remove("PropUpdateChunk", "SplineMesh_Render")
 hook.Add("PropUpdateChunk", "SplineMesh_Render", function(ent, chunk, oldchunk)
     if ent != LocalPlayer() then return end
     

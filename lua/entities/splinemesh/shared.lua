@@ -7,8 +7,8 @@ ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
 
 if SERVER then
-    ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
-    ENT.MeshNum = 3
+    ENT.Model = "models/hunter/blocks/cube025x8x025.mdl"
+    ENT.MeshNum = 1
     ENT.RADIUS = 250
     ENT.ANGLE = -45
     ENT.LENGTH = 50
@@ -17,6 +17,10 @@ if SERVER then
 end
 
 function ENT:Initialize()
+    self.OrigPos = self:GetPos()
+    self.OrigAngles = self:GetAngles()
+    self.OrigMatrix = Matrix(self:GetWorldTransformMatrix())
+
     if SERVER then
         self:SetNW2String('Model', self.Model)
         self:SetNW2Int('MeshNum', self.MeshNum)
@@ -26,6 +30,8 @@ function ENT:Initialize()
         self:SetNW2Bool('IsCurve', self.CURVE)
         self:SetNW2Float('Roll', self.ROLL)
         self.Model = Model(self.Model)
+        self:SetNW2Vector('OrigPos', self.OrigPos)
+        self:SetNW2Angle('OrigAngles', self.OrigAngles)
     elseif CLIENT then
         self.Model = Model(self:GetNW2String("Model"))
         self.MeshNum = self:GetNW2Int("MeshNum")
@@ -34,7 +40,16 @@ function ENT:Initialize()
         self.LENGTH = self:GetNW2Float("Length")
         self.CURVE = self:GetNW2Bool("IsCurve")
         self.ROLL = self:GetNW2Float("Roll")
+        self.OrigPos = self:GetNW2Vector("OrigPos")
+        self.OrigAngles = self:GetNW2Angle("OrigAngles")
     end
+
+    self.OrigMatrix = Matrix()
+    self.OrigMatrix:Translate(self.OrigPos)
+    self.OrigMatrix:Rotate(self.OrigAngles)
+    self:SetPos( Vector(0,0,0) ) -- Set pos where is player looking
+    self:SetAngles( Angle(0,0,0) )
+    print(self.OrigMatrix)
 
     self:BuildSegmentMatricies()
     self:SetModel( self.Model )
@@ -55,10 +70,17 @@ function ENT:Initialize()
         self.defaultColor = Vector()
         self.defaultColor:Random(0,1)
 
-        self.RenderMatrix = self:GetWorldTransformMatrix()
+        self.RenderMatrix = self.OrigMatrix
         if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
             self.RenderMatrix = Matrix() -- otherwise we multiply on zero matrix and model disappears
         end
+        
+        -- local offset = InfMap.unlocalize_vector(Vector(), self.CHUNK_OFFSET)
+        -- local off, ang = WorldToLocal(offset, Angle(), Vector(), self:GetAngles())
+        -- print('offset:', off)
+        -- print(self.RenderMatrix:GetTranslation())
+        -- self.RenderMatrix:Translate( off )
+        -- print(self.RenderMatrix:GetTranslation())
     end
 
     local scaledSegment = self.length / self.segments
@@ -86,66 +108,65 @@ function ENT:Initialize()
     local newConvexes = {}
     for i,matrix in pairs(self.matricies) do
         for k,convex in pairs(self.convexes) do
+
             local currentSegmentConvex = (i - 1) * self.convexesNum + k
+
             newConvexes[currentSegmentConvex] = table.CopyAV(convex)
             self.physics[currentSegmentConvex] = {}
+
             for k2,vertex in pairs(newConvexes[currentSegmentConvex]) do
                 self.physics[currentSegmentConvex][k2] = vertex.pos
                 vertex.pos:Rotate(matrix:GetAngles())
                 vertex.pos:Add(matrix:GetTranslation())
-                if InfMap then
-                    local wrappedpos, deltachunk = InfMap.localize_vector(vertex.pos)
-                    local chunkKey = InfMap.ChunkToText(deltachunk)
-                    if CLIENT then
-                        self.colors[chunkKey] = Vector()
-                        self.colors[chunkKey]:Random(0,1)
-                    end
+                vertex.pos:Rotate(self.OrigMatrix:GetAngles())
+                vertex.pos:Add(self.OrigMatrix:GetTranslation())
+                
+                if not InfMap then continue end
+
+                local wrappedpos, deltachunk = InfMap.localize_vector(vertex.pos)
+                local chunkKey = InfMap.ChunkToText(deltachunk)
+
+                self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+
+                local prev_source_bound = 2 * InfMap.chunk_size - 16384
+
+                if wrappedpos.x <= -prev_source_bound then
+                    local chunkKey = InfMap.ChunkToText(deltachunk - Vector(1, 0, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
-                        table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
-                    end
-
-                    local prev_source_bound = 2 * InfMap.chunk_size - 16384
-
-                    if wrappedpos.x <= -prev_source_bound then
-                        local chunkKey = InfMap.ChunkToText(deltachunk - Vector(1, 0, 0))
-                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
-                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
-                        end
-                    end
-                    if wrappedpos.x >= prev_source_bound then
-                        local chunkKey = InfMap.ChunkToText(deltachunk + Vector(1, 0, 0))
-                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
-                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
-                        end
-                    end
-                    if wrappedpos.y <= -prev_source_bound then
-                        local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 1, 0))
-                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
-                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
-                        end
-                    end
-                    if wrappedpos.y >= prev_source_bound then
-                        local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 1, 0))
-                        self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                        if !table.HasValue(self.InfMapOffsets[chunkKey], currentSegmentConvex) then
-                            table.insert(self.InfMapOffsets[chunkKey], currentSegmentConvex)
-                        end
-                    end
-                    if CLIENT then
-                        self.collisionMeshes[currentSegmentConvex] = Mesh()
-                        self.collisionMeshes[currentSegmentConvex]:BuildFromTriangles(newConvexes[currentSegmentConvex])
-                    end
-                    if chunkKey == self.ChunkKey then
-                        -- self.chunkPhysics[currentSegmentConvex] = self.chunkPhysics[currentSegmentConvex] || {}
-                        -- self.chunkPhysics[currentSegmentConvex][k2] = vertex.pos
-
-                        self.chunkPhysics[currentSegmentConvex] = SplineMesh.PrepareConvexes(newConvexes[currentSegmentConvex])
-                    end
+                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
                 end
+                if wrappedpos.x >= prev_source_bound then
+                    local chunkKey = InfMap.ChunkToText(deltachunk + Vector(1, 0, 0))
+                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                end
+                if wrappedpos.y <= -prev_source_bound then
+                    local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 1, 0))
+                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                end
+                if wrappedpos.y >= prev_source_bound then
+                    local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 1, 0))
+                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                end
+
+                if CLIENT then
+                    self.colors[chunkKey] = Vector()
+                    self.colors[chunkKey]:Random(0,1)
+
+                    self.collisionMeshes[currentSegmentConvex] = Mesh()
+                    self.collisionMeshes[currentSegmentConvex]:BuildFromTriangles(newConvexes[currentSegmentConvex])
+                end
+
+                if chunkKey == self.ChunkKey then
+                    -- self.chunkPhysics[currentSegmentConvex] = self.chunkPhysics[currentSegmentConvex] || {}
+                    -- self.chunkPhysics[currentSegmentConvex][k2] = vertex.pos
+
+                    self.chunkPhysics[currentSegmentConvex] = SplineMesh.PrepareConvexes(newConvexes[currentSegmentConvex])
+                end
+
             end
         end
     end
@@ -164,7 +185,8 @@ function ENT:Initialize()
                 table.insert(self.clones, e)
                 e.chunkKey = chunkKey
                 print(e)
-                e:SetPos(self:GetPos())
+                -- e:SetPos(self:GetPos())
+                -- e:SetAngles(self:GetAngles())
                 e:Spawn()
             end
         end
@@ -172,7 +194,7 @@ function ENT:Initialize()
         self.convexes = newConvexes
 
         local success = self:PhysicsInitMultiConvex( self.physics )
-        -- local success = self:PhysicsFromMesh( self.chunkPhysics )
+        -- local success = self:PhysicsInitMultiConvex( self.chunkPhysics )
         
         self:GetPhysicsObject():EnableMotion( false )
         self:GetPhysicsObject():SetMass(500000)
@@ -194,12 +216,13 @@ function ENT:BuildSegmentMatricies()
 	if ( !self.MESHes ) then return end
 	self.MESH = self.MESHes[ self.MeshNum ]
 
+    -- SplineMesh.RotateXY(self.MESH)
     local min, max = SplineMesh.GetBoundingBox(self.MESH)
 
     self.Mins = min
     self.Maxs = max
 
-    self.segment = max.y
+    self.segment = max.y - min.y
 
     -- local transform = self:GetWorldTransformMatrix()
     local transform = Matrix()

@@ -34,17 +34,20 @@ function ENT:DrawModelOrMesh()
         self.Mesh:Draw()
         if true or SplineMesh.DrawCollision then
             if k == 1 then
+                cam.PushModelMatrix( SplineMesh.RenderOffset * v )
                 render.SetMaterial(self.wireframe)
                 for chunk,meshes in pairs(self.InfMapOffsets) do
+                    if InfMap.ChunkToText(LocalPlayer().CHUNK_OFFSET) ~= chunk then continue end
                     self.wireframe:SetVector('$color', self.colors[chunk] or self.defaultColor)
-                    for k,meshnum in pairs(self.InfMapOffsets[chunk]) do
+                    for meshnum,_ in pairs(self.InfMapOffsets[chunk]) do
                     -- print(meshnum)
                         self.collisionMeshes[meshnum]:Draw()
                     end
                 end
+                cam.PopModelMatrix()
             end
         end
-        self:Debug(2)
+        -- self:Debug(2)
         -- Undo the cam.PushModelMatrix call above
         cam.PopModelMatrix()
     end
