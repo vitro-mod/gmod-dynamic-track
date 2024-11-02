@@ -7,8 +7,8 @@ ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
 
 if SERVER then
-    ENT.Model = "models/hunter/blocks/cube025x8x025.mdl"
-    ENT.MeshNum = 1
+    ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
+    ENT.MeshNum = 3
     ENT.RADIUS = 250
     ENT.ANGLE = -45
     ENT.LENGTH = 50
@@ -171,14 +171,11 @@ function ENT:Initialize()
         end
     end
 
-    if CLIENT then
-        self:PhysicsDestroy()
-    end
+    self:PhysicsDestroy()
 
     if SERVER then
         if InfMap then
             for chunkKey,v in pairs(self.InfMapOffsets) do
-                if chunkKey == self.ChunkKey then continue end
                 local e = ents.Create("splinemesh_clone")
                 if ( !IsValid( e ) ) then return end -- Safety first
                 e.parent = self
@@ -192,17 +189,6 @@ function ENT:Initialize()
         end
 
         self.convexes = newConvexes
-
-        local success = self:PhysicsInitMultiConvex( self.physics )
-        -- local success = self:PhysicsInitMultiConvex( self.chunkPhysics )
-        
-        self:GetPhysicsObject():EnableMotion( false )
-        self:GetPhysicsObject():SetMass(500000)
-        self:GetPhysicsObject():AddGameFlag(FVPHYSICS_CONSTRAINT_STATIC)
-        self:GetPhysicsObject():AddGameFlag(FVPHYSICS_NO_SELF_COLLISIONS)
-        self:SetSolid( SOLID_VPHYSICS ) -- Setting the solidity
-        self:SetMoveType( SOLID_VPHYSICS ) -- Setting the movement type
-        self:EnableCustomCollisions( true ) -- Enabling the custom collision mesh
     end
 end
 
