@@ -14,6 +14,7 @@ if SERVER then
     ENT.LENGTH = 50
     ENT.CURVE = false
     ENT.ROLL = 0---6.75
+    ENT.FORWARD_AXIS = 'Y'
 end
 
 function ENT:Initialize()
@@ -32,6 +33,7 @@ function ENT:Initialize()
         self.Model = Model(self.Model)
         self:SetNW2Vector('OrigPos', self.OrigPos)
         self:SetNW2Angle('OrigAngles', self.OrigAngles)
+        self:SetNW2String('ForwardAxis', self.FORWARD_AXIS)
     elseif CLIENT then
         self.Model = Model(self:GetNW2String("Model"))
         self.MeshNum = self:GetNW2Int("MeshNum")
@@ -42,6 +44,7 @@ function ENT:Initialize()
         self.ROLL = self:GetNW2Float("Roll")
         self.OrigPos = self:GetNW2Vector("OrigPos")
         self.OrigAngles = self:GetNW2Angle("OrigAngles")
+        self.FORWARD_AXIS = self:GetNW2String("ForwardAxis")
     end
 
     self.OrigMatrix = Matrix()
@@ -49,7 +52,6 @@ function ENT:Initialize()
     self.OrigMatrix:Rotate(self.OrigAngles)
     self:SetPos( Vector(0,0,0) ) -- Set pos where is player looking
     self:SetAngles( Angle(0,0,0) )
-    print(self.OrigMatrix)
 
     self:BuildSegmentMatricies()
     self:SetModel( self.Model )
@@ -90,6 +92,11 @@ function ENT:Initialize()
     self.convexesNum = #self.convexes
     for k,v in pairs(self.convexes) do
         self.convexes[k] = {verticies = v}
+
+        if self.FORWARD_AXIS == 'X' then
+            SplineMesh.RotateXY(self.convexes[k])
+        end
+
         self.convexes[k] = self:DeformMesh(self.convexes[k])
         self.convexes[k] = self.convexes[k].verticies
     end
@@ -103,7 +110,6 @@ function ENT:Initialize()
         self.ChunkKey = InfMap.ChunkToText(self.CHUNK_OFFSET)
         self.clones = {}
     end
-
 
     local newConvexes = {}
     for i,matrix in pairs(self.matricies) do
@@ -202,7 +208,10 @@ function ENT:BuildSegmentMatricies()
 	if ( !self.MESHes ) then return end
 	self.MESH = self.MESHes[ self.MeshNum ]
 
-    -- SplineMesh.RotateXY(self.MESH)
+    if self.FORWARD_AXIS == 'X' then
+        SplineMesh.RotateXY(self.convexes[k])
+    end
+
     local min, max = SplineMesh.GetBoundingBox(self.MESH)
 
     self.Mins = min
