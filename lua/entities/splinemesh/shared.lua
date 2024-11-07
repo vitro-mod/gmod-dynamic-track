@@ -222,16 +222,14 @@ function ENT:BuildSegmentMatricies()
     else
         self.segments = math.Round(self.length / self.segment)
         if self.segments == 0 then self.segments = 1 end
+        self.bezierSpline = SplineMesh.ApproximateStraight(self.length / self.segments)
         self.matricies, self.endMatrix = SplineMesh.StraightSegments(self.length, self.segments)
     end
 end
 
 function ENT:DeformMesh(MESH)
-    if self.CURVE then
-        MESH = SplineMesh.ArcDeform(MESH, self.bezierSpline, self.segment, self.ROLL)
-    else
-        MESH = SplineMesh.StraightDeform(MESH, (self.length / self.segments) / self.segment)
-    end
+
+    MESH = SplineMesh.Deform(MESH, self.bezierSpline, self.segment, self.ROLL)
 
     return MESH
 end
