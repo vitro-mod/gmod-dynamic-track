@@ -160,9 +160,6 @@ function ENT:Initialize()
                 end
 
                 if chunkKey == self.ChunkKey then
-                    -- self.chunkPhysics[currentSegmentConvex] = self.chunkPhysics[currentSegmentConvex] || {}
-                    -- self.chunkPhysics[currentSegmentConvex][k2] = vertex.pos
-
                     self.chunkPhysics[currentSegmentConvex] = SplineMesh.PrepareConvexes(newConvexes[currentSegmentConvex])
                 end
 
