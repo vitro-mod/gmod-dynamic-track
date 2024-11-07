@@ -209,7 +209,6 @@ function ENT:BuildSegmentMatricies()
 
     self.segment = max.y - min.y
 
-    -- local transform = self:GetWorldTransformMatrix()
     local transform = Matrix()
 
     if self.CURVE then 
