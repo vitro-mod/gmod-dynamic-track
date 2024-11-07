@@ -28,3 +28,13 @@ SplineMesh.ApproximateArc = function(angle, radius)
 
     return Bezier3(startPos, startTangent, endTangent, endPos)
 end
+
+SplineMesh.ApproximateStraight = function(length)
+    local startPos = Vector()
+    local endPos = Vector(0, length)
+
+    local startTangent = Vector(0, length / 3)
+    local endTangent = Vector(0, 2 * length / 3)
+
+    return Bezier3(startPos, startTangent, endTangent, endPos)
+end
