@@ -19,15 +19,7 @@ function ENT:Initialize()
         i = i + 1
     end
 
-    -- PrintTable(self.parent.InfMapOffsets[self.chunkKey])
-    -- PrintTable(self.chunkPhysics)
-    -- self.chunkPhysics = SplineMesh.WeldConvexesPos(self.chunkPhysics)
-    -- PrintTable(self.chunkPhysics)
-    -- for k,v in pairs(self.chunkPhysics) do print(k) end
-
     self:PhysicsInitMultiConvex( self.chunkPhysics )
-    -- self:PhysicsFromMesh( self.chunkPhysics )
-    
     self:GetPhysicsObject():EnableMotion( false )
     self:GetPhysicsObject():SetMass(500000)
     self:GetPhysicsObject():AddGameFlag(FVPHYSICS_CONSTRAINT_STATIC)

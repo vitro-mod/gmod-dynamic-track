@@ -76,13 +76,6 @@ function ENT:Initialize()
         if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
             self.RenderMatrix = Matrix() -- otherwise we multiply on zero matrix and model disappears
         end
-        
-        -- local offset = InfMap.unlocalize_vector(Vector(), self.CHUNK_OFFSET)
-        -- local off, ang = WorldToLocal(offset, Angle(), Vector(), self:GetAngles())
-        -- print('offset:', off)
-        -- print(self.RenderMatrix:GetTranslation())
-        -- self.RenderMatrix:Translate( off )
-        -- print(self.RenderMatrix:GetTranslation())
     end
 
     local scaledSegment = self.length / self.segments
