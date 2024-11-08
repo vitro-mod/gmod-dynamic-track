@@ -7,44 +7,61 @@ ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
 
 if SERVER then
-    ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
-    ENT.MeshNum = 3
+    ENT.Model = "models/mn_r/mn_r_noall.mdl"
+    ENT.MeshNum = 1
     ENT.RADIUS = 250
     ENT.ANGLE = -45
     ENT.LENGTH = 50
     ENT.CURVE = false
     ENT.ROLL = 0---6.75
-    ENT.FORWARD_AXIS = 'Y'
+    ENT.FORWARD_AXIS = 'X'
+end
+
+function ENT:SetupDataTables()
+    self:NetworkVar('String', 'MdlFile')
+    self:NetworkVar('Int', 'MeshNum')
+    self:NetworkVar('Float', 'CurveRadius')
+    self:NetworkVar('Float', 'CurveAngle')
+    self:NetworkVar('Float', 'TrackLength')
+    self:NetworkVar('Bool', 'IsCurve')
+    self:NetworkVar('Float', 'CurveRoll')
+    self:NetworkVar('Vector', 'OrigPos')
+    self:NetworkVar('Angle', 'OrigAngles')
+    self:NetworkVar('String', 'ForwardAxis')
 end
 
 function ENT:Initialize()
-    self.OrigPos = self:GetPos()
-    self.OrigAngles = self:GetAngles()
-    self.OrigMatrix = Matrix(self:GetWorldTransformMatrix())
-
     if SERVER then
-        self:SetNW2String('Model', self.Model)
-        self:SetNW2Int('MeshNum', self.MeshNum)
-        self:SetNW2Float('Radius', self.RADIUS)
-        self:SetNW2Float('Angle', self.ANGLE)
-        self:SetNW2Float('Length', self.LENGTH)
-        self:SetNW2Bool('IsCurve', self.CURVE)
-        self:SetNW2Float('Roll', self.ROLL)
-        self.Model = Model(self.Model)
-        self:SetNW2Vector('OrigPos', self.OrigPos)
-        self:SetNW2Angle('OrigAngles', self.OrigAngles)
-        self:SetNW2String('ForwardAxis', self.FORWARD_AXIS)
+        if InfMap then
+            local wrappedpos, deltachunk = InfMap.localize_vector(self:GetPos())
+            InfMap.prop_update_chunk(self, deltachunk)
+        end
+
+        self.OrigPos = self:GetPos()
+        self.OrigAngles = self:GetAngles()
+        self.OrigMatrix = Matrix(self:GetWorldTransformMatrix())
+
+        self:SetMdlFile(self.Model)
+        self:SetMeshNum(self.MeshNum)
+        self:SetCurveRadius(self.RADIUS)
+        self:SetCurveAngle(self.ANGLE)
+        self:SetTrackLength(self.LENGTH)
+        self:SetIsCurve(self.CURVE)
+        self:SetCurveRoll(self.ROLL)
+        self:SetOrigPos(self.OrigPos)
+        self:SetOrigAngles(self.OrigAngles)
+        self:SetForwardAxis(self.FORWARD_AXIS)
     elseif CLIENT then
-        self.Model = Model(self:GetNW2String("Model"))
-        self.MeshNum = self:GetNW2Int("MeshNum")
-        self.RADIUS = self:GetNW2Float("Radius")
-        self.ANGLE = self:GetNW2Float("Angle")
-        self.LENGTH = self:GetNW2Float("Length")
-        self.CURVE = self:GetNW2Bool("IsCurve")
-        self.ROLL = self:GetNW2Float("Roll")
-        self.OrigPos = self:GetNW2Vector("OrigPos")
-        self.OrigAngles = self:GetNW2Angle("OrigAngles")
-        self.FORWARD_AXIS = self:GetNW2String("ForwardAxis")
+        self.Model = self:GetMdlFile()
+        self.MeshNum = self:GetMeshNum()
+        self.RADIUS = self:GetCurveRadius()
+        self.ANGLE = self:GetCurveAngle()
+        self.LENGTH = self:GetTrackLength()
+        self.CURVE = self:GetIsCurve()
+        self.ROLL = self:GetCurveRoll()
+        self.OrigPos = self:GetOrigPos()
+        self.OrigAngles = self:GetOrigAngles()
+        self.FORWARD_AXIS = self:GetForwardAxis()
     end
 
     self.OrigMatrix = Matrix()
@@ -100,7 +117,8 @@ function ENT:Initialize()
         self.InfMapOffsets = {}
         InfMap.filter['splinemesh'] = true
         InfMap.filter['splinemesh_clone'] = true
-        self.ChunkKey = InfMap.ChunkToText(self.CHUNK_OFFSET)
+        local _, deltachunk = InfMap.localize_vector(self.OrigPos)
+        self.ChunkKey = InfMap.ChunkToText(deltachunk)
         self.clones = {}
     end
 
