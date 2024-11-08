@@ -199,7 +199,7 @@ function ENT:BuildSegmentMatricies()
 	self.MESH = self.MESHes[ self.MeshNum ]
 
     if self.FORWARD_AXIS == 'X' then
-        SplineMesh.RotateXY(self.convexes[k])
+        SplineMesh.RotateXY(self.MESH)
     end
 
     local min, max = SplineMesh.GetBoundingBox(self.MESH)
