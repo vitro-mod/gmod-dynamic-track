@@ -32,11 +32,6 @@ end
 
 function ENT:Initialize()
     if SERVER then
-        if InfMap then
-            local wrappedpos, deltachunk = InfMap.localize_vector(self:GetPos())
-            InfMap.prop_update_chunk(self, deltachunk)
-        end
-
         self.OrigPos = self:GetPos()
         self.OrigAngles = self:GetAngles()
         self.OrigMatrix = Matrix(self:GetWorldTransformMatrix())
@@ -113,13 +108,13 @@ function ENT:Initialize()
 
     self.physics = {}
     self.chunkPhysics = {}
+
     if InfMap then
         self.InfMapOffsets = {}
         InfMap.filter['splinemesh'] = true
         InfMap.filter['splinemesh_clone'] = true
         local _, deltachunk = InfMap.localize_vector(self.OrigPos)
         self.ChunkKey = InfMap.ChunkToText(deltachunk)
-        self.clones = {}
     end
 
     local newConvexes = {}
@@ -176,11 +171,6 @@ function ENT:Initialize()
                     self.collisionMeshes[currentSegmentConvex] = Mesh()
                     self.collisionMeshes[currentSegmentConvex]:BuildFromTriangles(newConvexes[currentSegmentConvex])
                 end
-
-                if chunkKey == self.ChunkKey then
-                    self.chunkPhysics[currentSegmentConvex] = SplineMesh.PrepareConvexes(newConvexes[currentSegmentConvex])
-                end
-
             end
         end
     end
@@ -188,16 +178,18 @@ function ENT:Initialize()
     self:PhysicsDestroy()
 
     if SERVER then
+        self.clones = {}
+
         if InfMap then
             for chunkKey,v in pairs(self.InfMapOffsets) do
                 local e = ents.Create("splinemesh_clone")
                 if ( !IsValid( e ) ) then return end -- Safety first
                 e.parent = self
+                e:SetParentSpline(self)
                 table.insert(self.clones, e)
                 e.chunkKey = chunkKey
+                e:SetChunkKey(chunkKey)
                 print(e)
-                -- e:SetPos(self:GetPos())
-                -- e:SetAngles(self:GetAngles())
                 e:Spawn()
             end
         end
