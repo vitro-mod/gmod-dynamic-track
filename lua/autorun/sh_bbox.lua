@@ -25,7 +25,15 @@ SplineMesh.GetBoundingBox = function(mesh)
 end
 
 SplineMesh.RotateXY = function(mesh)
-    for k,v in pairs (mesh.verticies) do
+    for k,v in pairs(mesh.verticies) do
+        local x = v.pos.x
+        v.pos.x = v.pos.y
+        v.pos.y = -x
+    end
+end
+
+SplineMesh.PhysicsRotateXY = function(physicsMesh)
+    for k,v in pairs(physicsMesh) do
         local x = v.pos.x
         v.pos.x = v.pos.y
         v.pos.y = -x

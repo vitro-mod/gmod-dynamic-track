@@ -12,18 +12,15 @@ function ENT:SetupDataTables()
 end
 
 function ENT:Initialize()
-    if InfMap then
-        self.chunkOffset = InfMap.TextToChunk(self.chunkKey)
-        InfMap.prop_update_chunk(self, self.chunkOffset)
-    end
-
     if CLIENT then
         self.parent = self:GetParentSpline()
         self.chunkKey = self:GetChunkKey()
     end
 
-    -- self:SetModel(self.parent:GetModel())
-    -- self:PhysicsInit(SOLID_VPHYSICS)
+    if InfMap then
+        self.chunkOffset = InfMap.TextToChunk(self.chunkKey)
+        InfMap.prop_update_chunk(self, self.chunkOffset)
+    end
 
     self.chunkPhysics = {}
 
@@ -37,46 +34,25 @@ function ENT:Initialize()
         i = i + 1
     end
 
-    if SERVER then
-        self.InitCollision(self, self.chunkPhysics)
-    else
-        self.clientProp = ents.CreateClientProp( self.parent.Model )
-        self.clientProp:SetModel(self.parent.Model)
-        self.clientProp.parent = self
-        if InfMap then
-            InfMap.prop_update_chunk(self.clientProp, self.chunkOffset)
-        end
-        self.clientProp:SetPos(self.parent.OrigMatrix:GetTranslation())
-        self.clientProp:SetAngles(self.parent.OrigMatrix:GetAngles())
-        self.clientProp:Spawn()
-        self.InitCollision(self.clientProp, self.chunkPhysics)
-        self.clientProp:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
-    end
+    self:InitCollision(self.chunkPhysics)
 end
 
-function ENT.InitCollision(ent, multiconvex)
-    if SERVER then
-        ent:PhysicsInitMultiConvex( multiconvex )
-    end
-    ent:SetSolid(SOLID_VPHYSICS)
-    ent:SetMoveType(MOVETYPE_NONE)
-    if SERVER then
-        ent:EnableCustomCollisions(true)
-    end
-    ent:DrawShadow(false)
-    -- ent:SetRenderMode(RENDERMODE_NONE)
-    -- ent:SetNoDraw(true)
-    ent:AddSolidFlags(FSOLID_FORCE_WORLD_ALIGNED)
-    ent:AddFlags(FL_STATICPROP)
+function ENT:InitCollision(convexes)
+    self:PhysicsInitMultiConvex(convexes)
+    self:SetSolid(SOLID_VPHYSICS)
+    self:SetMoveType(MOVETYPE_NONE)
+    self:EnableCustomCollisions(true)
+    self:DrawShadow(false)
+    self:SetRenderMode(RENDERMODE_NONE)
+    -- self:SetNoDraw(true)
+    self:AddSolidFlags(FSOLID_FORCE_WORLD_ALIGNED)
+    self:AddFlags(FL_STATICPROP)
 
-    local phys = ent:GetPhysicsObject()
+    local phys = self:GetPhysicsObject()
     if IsValid(phys) then
         phys:EnableMotion( false )
         phys:SetMass(50000)
         phys:AddGameFlag(FVPHYSICS_CONSTRAINT_STATIC)
         phys:AddGameFlag(FVPHYSICS_NO_SELF_COLLISIONS)
-        if CLIENT then
-            phys:SetAngles(ent.parent.parent.OrigMatrix:GetAngles())
-        end
     end
 end
