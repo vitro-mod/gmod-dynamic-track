@@ -15,22 +15,22 @@ if InfMap then
 end
 
 if SERVER then
-    ENT.Model = "models/mn_r/mn_r_noall.mdl"
-    ENT.MeshNum = 1
-    -- ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
-    -- ENT.MeshNum = 3
+    -- ENT.Model = "models/mn_r/mn_r_noall.mdl"
+    -- ENT.TrackMeshNum = 1
+    ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
+    ENT.TrackMeshNum = 3
     ENT.RADIUS = 250
     ENT.ANGLE = -45
     ENT.LENGTH = 50
     ENT.CURVE = false
     ENT.ROLL = 0---6.75
-    ENT.FORWARD_AXIS = 'X'
-    -- ENT.FORWARD_AXIS = 'Y'
+    -- ENT.FORWARD_AXIS = 'X'
+    ENT.FORWARD_AXIS = 'Y'
 end
 
 function ENT:SetupDataTables()
     self:NetworkVar('String', 'MdlFile')
-    self:NetworkVar('Int', 'MeshNum')
+    self:NetworkVar('Int', 'TrackMeshNum')
     self:NetworkVar('Float', 'CurveRadius')
     self:NetworkVar('Float', 'CurveAngle')
     self:NetworkVar('Float', 'TrackLength')
@@ -48,7 +48,7 @@ function ENT:Initialize()
         self.OrigMatrix = Matrix(self:GetWorldTransformMatrix())
 
         self:SetMdlFile(self.Model)
-        self:SetMeshNum(self.MeshNum)
+        self:SetTrackMeshNum(self.TrackMeshNum)
         self:SetCurveRadius(self.RADIUS)
         self:SetCurveAngle(self.ANGLE)
         self:SetTrackLength(self.LENGTH)
@@ -59,7 +59,7 @@ function ENT:Initialize()
         self:SetForwardAxis(self.FORWARD_AXIS)
     elseif CLIENT then
         self.Model = self:GetMdlFile()
-        self.MeshNum = self:GetMeshNum()
+        self.TrackMeshNum = self:GetTrackMeshNum()
         self.RADIUS = self:GetCurveRadius()
         self.ANGLE = self:GetCurveAngle()
         self.LENGTH = self:GetTrackLength()
@@ -77,6 +77,11 @@ function ENT:Initialize()
     self:SetAngles( Angle(0,0,0) )
 
     self:InitMeshes()
+    if not self.Meshes then
+        print('SplineMesh invalid meshes!', self)
+        return
+    end
+
     self:PrepareMeshes()
     self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
@@ -202,15 +207,16 @@ end
 
 function ENT:InitMeshes()
     self.Meshes = util.GetModelMeshes( self.Model )
-	if ( !self.Meshes ) then return end
-	self.TrackMesh = self.Meshes[ self.MeshNum ]
+	if not self.Meshes then return end
+    
+	self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
 end
 
 function ENT:PrepareMeshes()
+    if self.FORWARD_AXIS ~= 'X' then return end
+
     for k,currentMesh in pairs(self.Meshes) do
-        if self.FORWARD_AXIS == 'X' then
-            SplineMesh.RotateXY(currentMesh)
-        end
+        SplineMesh.RotateXY(currentMesh)
     end
 end
 
