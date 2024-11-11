@@ -1,15 +1,15 @@
 include("shared.lua")
 
 function ENT:CreateMesh()
-	self.MESH = self:DeformMesh(self.MESH)
+	self.TrackMesh = self:DeformMesh(self.TrackMesh)
 
 	-- Set the material to draw the mesh with from the model data
-	self.myMaterial = Material( self.MESH.material )
+	self.myMaterial = Material( self.TrackMesh.material )
 
 	-- Destroy any previous meshes
 	if ( self.Mesh ) then self.Mesh:Destroy() end
 	self.Mesh = Mesh()
-	self.Mesh:BuildFromTriangles( self.MESH.triangles )
+	self.Mesh:BuildFromTriangles( self.TrackMesh.triangles )
 end
 
 -- A special hook to override the normal mesh for rendering

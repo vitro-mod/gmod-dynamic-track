@@ -201,15 +201,15 @@ end
 function ENT:PrepareMeshes()
     self.MESHes = util.GetModelMeshes( self.Model )
 	if ( !self.MESHes ) then return end
-	self.MESH = self.MESHes[ self.MeshNum ]
+	self.TrackMesh = self.MESHes[ self.MeshNum ]
     
     if self.FORWARD_AXIS == 'X' then
-        SplineMesh.RotateXY(self.MESH)
+        SplineMesh.RotateXY(self.TrackMesh)
     end
 end
 
 function ENT:CountMeshBoundingBox()
-    local min, max = SplineMesh.GetBoundingBox(self.MESH)
+    local min, max = SplineMesh.GetBoundingBox(self.TrackMesh)
 
     self.Mins = min
     self.Maxs = max
