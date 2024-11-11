@@ -13,8 +13,8 @@ SplineMesh.Deform = function(mesh, spline, scale, roll)
         local derivative = spline:Derivative():Sample(t)
         derivative:Normalize()
         derivative:Mul(v.pos.x)
-        v.pos:Rotate(superelevation) --superelevation
         v.pos = bezier + Vector(derivative.y, -derivative.x) + Vector(0,0,v.pos.z)
+        v.pos:Rotate(superelevation) --superelevation
     end
 
     return mesh
