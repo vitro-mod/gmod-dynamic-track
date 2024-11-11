@@ -76,6 +76,7 @@ function ENT:Initialize()
     self:SetPos( Vector(0,0,0) ) -- Set pos where is player looking
     self:SetAngles( Angle(0,0,0) )
 
+    self:InitMeshes()
     self:PrepareMeshes()
     self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
@@ -198,11 +199,13 @@ function ENT:Initialize()
     self:SpawnCollisionClones()
 end
 
-function ENT:PrepareMeshes()
+function ENT:InitMeshes()
     self.MESHes = util.GetModelMeshes( self.Model )
 	if ( !self.MESHes ) then return end
 	self.TrackMesh = self.MESHes[ self.MeshNum ]
-    
+end
+
+function ENT:PrepareMeshes()
     if self.FORWARD_AXIS == 'X' then
         SplineMesh.RotateXY(self.TrackMesh)
     end
