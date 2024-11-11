@@ -1,8 +1,6 @@
 include("shared.lua")
 
 function ENT:CreateMesh()
-	self.TrackMesh = self:DeformMesh(self.TrackMesh)
-
 	-- Set the material to draw the mesh with from the model data
 	self.myMaterial = Material( self.TrackMesh.material )
 

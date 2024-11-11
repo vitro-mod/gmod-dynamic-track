@@ -80,6 +80,7 @@ function ENT:Initialize()
     self:PrepareMeshes()
     self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
+    self:DeformMeshes()
 
     self:SetModel( self.Model )
     self:PhysicsInit(SOLID_VPHYSICS)
@@ -114,7 +115,7 @@ function ENT:Initialize()
             SplineMesh.RotateXY(self.convexes[k])
         end
 
-        self.convexes[k] = self:DeformMesh(self.convexes[k])
+        self:DeformMesh(self.convexes[k])
 
         self.convexes[k] = self.convexes[k].verticies
     end
@@ -206,8 +207,10 @@ function ENT:InitMeshes()
 end
 
 function ENT:PrepareMeshes()
-    if self.FORWARD_AXIS == 'X' then
-        SplineMesh.RotateXY(self.TrackMesh)
+    for k,currentMesh in pairs(self.Meshes) do
+        if self.FORWARD_AXIS == 'X' then
+            SplineMesh.RotateXY(currentMesh)
+        end
     end
 end
 
@@ -216,6 +219,12 @@ function ENT:CountMeshBoundingBox()
 
     self.Mins = min
     self.Maxs = max
+end
+
+function ENT:DeformMeshes()
+    for k,currentMesh in pairs(self.Meshes) do
+        self:DeformMesh(currentMesh)
+    end
 end
 
 function ENT:BuildSegmentMatricies()
