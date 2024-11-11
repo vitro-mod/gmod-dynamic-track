@@ -9,12 +9,15 @@ ENT.AdminSpawnable	= false
 if SERVER then
     ENT.Model = "models/mn_r/mn_r_noall.mdl"
     ENT.MeshNum = 1
+    -- ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
+    -- ENT.MeshNum = 3
     ENT.RADIUS = 250
     ENT.ANGLE = -45
     ENT.LENGTH = 50
     ENT.CURVE = false
     ENT.ROLL = 0---6.75
     ENT.FORWARD_AXIS = 'X'
+    -- ENT.FORWARD_AXIS = 'Y'
 end
 
 function ENT:SetupDataTables()
