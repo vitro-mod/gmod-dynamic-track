@@ -200,9 +200,9 @@ function ENT:Initialize()
 end
 
 function ENT:InitMeshes()
-    self.MESHes = util.GetModelMeshes( self.Model )
-	if ( !self.MESHes ) then return end
-	self.TrackMesh = self.MESHes[ self.MeshNum ]
+    self.Meshes = util.GetModelMeshes( self.Model )
+	if ( !self.Meshes ) then return end
+	self.TrackMesh = self.Meshes[ self.MeshNum ]
 end
 
 function ENT:PrepareMeshes()
