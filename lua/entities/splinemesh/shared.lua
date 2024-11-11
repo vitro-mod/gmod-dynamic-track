@@ -9,6 +9,11 @@ ENT.AdminSpawnable	= false
 ENT.METERS_IN_UNIT = 0.01905 --0.0254*0.75
 ENT.UNITS_IN_METER = 1 / 0.01905
 
+if InfMap then
+    InfMap.filter['splinemesh'] = true
+    InfMap.filter['splinemesh_clone'] = true
+end
+
 if SERVER then
     ENT.Model = "models/mn_r/mn_r_noall.mdl"
     ENT.MeshNum = 1
