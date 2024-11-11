@@ -55,16 +55,13 @@ end
 
 function ENT:Draw()
 
-
 	if ( !self.Mesh ) then return self:CreateMesh() end
-
 
 	-- Draw the mesh normally
 	self:DrawModelOrMesh()
 
 	-- Draw the additive flashlight layers
 	render.RenderFlashlights( function() self:DrawModelOrMesh() end )
-
 end
 
 function ENT:Debug(segm)

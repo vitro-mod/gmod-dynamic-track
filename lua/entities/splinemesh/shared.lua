@@ -6,6 +6,9 @@ ENT.Author			= "vitro_mod"
 ENT.Spawnable		= false
 ENT.AdminSpawnable	= false
 
+ENT.METERS_IN_UNIT = 0.01905 --0.0254*0.75
+ENT.UNITS_IN_METER = 1 / 0.01905
+
 if SERVER then
     ENT.Model = "models/mn_r/mn_r_noall.mdl"
     ENT.MeshNum = 1
@@ -68,7 +71,10 @@ function ENT:Initialize()
     self:SetPos( Vector(0,0,0) ) -- Set pos where is player looking
     self:SetAngles( Angle(0,0,0) )
 
+    self:PrepareMeshes()
+    self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
+
     self:SetModel( self.Model )
     self:PhysicsInit(SOLID_VPHYSICS)
 
@@ -93,9 +99,6 @@ function ENT:Initialize()
         end
     end
 
-    local scaledSegment = self.length / self.segments
-    local scale = scaledSegment / self.Maxs.y
-
     self.convexes = self:GetPhysicsObject():GetMeshConvexes()
     self.convexesNum = #self.convexes
     for k,v in pairs(self.convexes) do
@@ -106,31 +109,30 @@ function ENT:Initialize()
         end
 
         self.convexes[k] = self:DeformMesh(self.convexes[k])
+
         self.convexes[k] = self.convexes[k].verticies
     end
 
-    self.physics = {}
-    self.chunkPhysics = {}
-
     if InfMap then
         self.InfMapOffsets = {}
-        InfMap.filter['splinemesh'] = true
-        InfMap.filter['splinemesh_clone'] = true
         local _, deltachunk = InfMap.localize_vector(self.OrigPos)
         self.ChunkKey = InfMap.ChunkToText(deltachunk)
     end
-
+    
+    self.physics = {}
     local newConvexes = {}
+    local prev_source_bound = 2 * InfMap.chunk_size - 16384
+
     for i,matrix in pairs(self.matricies) do
         for k,convex in pairs(self.convexes) do
 
-            local currentSegmentConvex = (i - 1) * self.convexesNum + k
+            local currentConvexIndex = (i - 1) * self.convexesNum + k
 
-            newConvexes[currentSegmentConvex] = table.CopyAV(convex)
-            self.physics[currentSegmentConvex] = {}
+            newConvexes[currentConvexIndex] = table.CopyAV(convex)
+            self.physics[currentConvexIndex] = {}
 
-            for k2,vertex in pairs(newConvexes[currentSegmentConvex]) do
-                self.physics[currentSegmentConvex][k2] = vertex.pos
+            for k2,vertex in pairs(newConvexes[currentConvexIndex]) do
+                self.physics[currentConvexIndex][k2] = vertex.pos
                 vertex.pos:Rotate(matrix:GetAngles())
                 vertex.pos:Add(matrix:GetTranslation())
                 vertex.pos:Rotate(self.OrigMatrix:GetAngles())
@@ -142,37 +144,45 @@ function ENT:Initialize()
                 local chunkKey = InfMap.ChunkToText(deltachunk)
 
                 self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
-
-                local prev_source_bound = 2 * InfMap.chunk_size - 16384
+                self.InfMapOffsets[chunkKey][currentConvexIndex] = true
 
                 if wrappedpos.x <= -prev_source_bound then
                     local chunkKey = InfMap.ChunkToText(deltachunk - Vector(1, 0, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
                 if wrappedpos.x >= prev_source_bound then
                     local chunkKey = InfMap.ChunkToText(deltachunk + Vector(1, 0, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
                 if wrappedpos.y <= -prev_source_bound then
                     local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 1, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
                 if wrappedpos.y >= prev_source_bound then
                     local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 1, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentSegmentConvex] = true
+                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
+                end
+                if wrappedpos.z <= -prev_source_bound then
+                    local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 0, 1))
+                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
+                end
+                if wrappedpos.z >= prev_source_bound then
+                    local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 0, 1))
+                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
+                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
 
                 if CLIENT then
                     self.colors[chunkKey] = Vector()
                     self.colors[chunkKey]:Random(0,1)
 
-                    self.collisionMeshes[currentSegmentConvex] = Mesh()
-                    self.collisionMeshes[currentSegmentConvex]:BuildFromTriangles(newConvexes[currentSegmentConvex])
+                    self.collisionMeshes[currentConvexIndex] = Mesh()
+                    self.collisionMeshes[currentConvexIndex]:BuildFromTriangles(newConvexes[currentConvexIndex])
                 end
             end
         end
@@ -180,68 +190,76 @@ function ENT:Initialize()
 
     self:PhysicsDestroy()
 
-    if SERVER then
-        self.clones = {}
-
-        if InfMap then
-            for chunkKey,v in pairs(self.InfMapOffsets) do
-                local e = ents.Create("splinemesh_clone")
-                if ( !IsValid( e ) ) then return end -- Safety first
-                e.parent = self
-                e:SetParentSpline(self)
-                table.insert(self.clones, e)
-                e.chunkKey = chunkKey
-                e:SetChunkKey(chunkKey)
-                print(e)
-                e:Spawn()
-            end
-        end
-
-        self.convexes = newConvexes
-    end
+    self:SpawnCollisionClones()
 end
 
-function ENT:BuildSegmentMatricies()
-
-    local metersInUnits = 0.01905 --0.0254*0.75
-    self.radius = self.RADIUS / metersInUnits
-    self.length = self.LENGTH / metersInUnits
-
-	self.MESHes = util.GetModelMeshes( self.Model )
+function ENT:PrepareMeshes()
+    self.MESHes = util.GetModelMeshes( self.Model )
 	if ( !self.MESHes ) then return end
 	self.MESH = self.MESHes[ self.MeshNum ]
-
+    
     if self.FORWARD_AXIS == 'X' then
         SplineMesh.RotateXY(self.MESH)
     end
+end
 
+function ENT:CountMeshBoundingBox()
     local min, max = SplineMesh.GetBoundingBox(self.MESH)
 
     self.Mins = min
     self.Maxs = max
+end
 
-    self.segment = max.y - min.y
+function ENT:BuildSegmentMatricies()
 
-    local transform = Matrix()
+    local radius = self.RADIUS * self.UNITS_IN_METER
+    local length = self.LENGTH * self.UNITS_IN_METER
+
+    local segmentLength = self.Maxs.y - self.Mins.y
 
     if self.CURVE then 
-        local arc = math.rad(math.abs(self.ANGLE)) * self.radius
+        local arc = math.rad(math.abs(self.ANGLE)) * radius
 
-        self.segments = math.Round(arc / self.segment)
+        self.segments = math.Round(arc / segmentLength)
         if self.segments == 0 then self.segments = 1 end
-        self.bezierSpline = SplineMesh.ApproximateArc(self.ANGLE / self.segments, self.radius)
+        self.bezierSpline = SplineMesh.ApproximateArc(self.ANGLE / self.segments, radius)
         self.matricies, self.endMatrix = SplineMesh.ArcSegments(self.ANGLE / self.segments, self.bezierSpline.endPos, self.segments)
     else
-        self.segments = math.Round(self.length / self.segment)
+        self.segments = math.Round(length / segmentLength)
         if self.segments == 0 then self.segments = 1 end
-        self.bezierSpline = SplineMesh.ApproximateStraight(self.length / self.segments)
-        self.matricies, self.endMatrix = SplineMesh.StraightSegments(self.length, self.segments)
+        self.bezierSpline = SplineMesh.ApproximateStraight(length / self.segments)
+        self.matricies, self.endMatrix = SplineMesh.StraightSegments(length, self.segments)
     end
 end
 
 function ENT:DeformMesh(MESH)
+    local segmentLength = self.Maxs.y - self.Mins.y
+    local offset = Vector(0, -self.Mins.y, 0)
 
-    MESH = SplineMesh.Deform(MESH, self.bezierSpline, self.segment, self.ROLL)
+    MESH = SplineMesh.Deform(MESH, self.bezierSpline, segmentLength, self.ROLL, offset)
 
     return MESH
+end
+
+function ENT:SpawnCollisionClones()
+    if not SERVER then return end
+
+    self.clones = {}
+
+    if not InfMap then return end
+
+    for chunkKey,v in pairs(self.InfMapOffsets) do
+        local e = ents.Create("splinemesh_clone")
+        if ( !IsValid( e ) ) then return end -- Safety first
+
+        e.parent = self
+        e:SetParentSpline(self)
+        table.insert(self.clones, e)
+
+        e.chunkKey = chunkKey
+        e:SetChunkKey(chunkKey)
+
+        print('SpawnCollisionClones: ', e)
+        e:Spawn()
+    end
 end

@@ -1,13 +1,10 @@
 SplineMesh = SplineMesh || {}
 
-SplineMesh.Deform = function(mesh, spline, scale, roll)
-    local superelevation = Angle()
-    if roll ~= 0 then 
-        superelevation:SetUnpacked(roll, 0, 0) 
-    end
+SplineMesh.Deform = function(mesh, spline, scale, roll, offset)
+    local superelevation = Angle(roll, 0, 0)
+
     for k,v in pairs(mesh.verticies) do
-        --v.pos:Mul(Vector(1,1,1))
-        --v.pos:Sub(Vector(min.x, 0, 0))
+        v.pos:Add(offset)
         local t = v.pos.y / scale
         local bezier = spline:Sample(t)
         local derivative = spline:Derivative():Sample(t)
