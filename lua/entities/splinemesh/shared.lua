@@ -188,14 +188,11 @@ function ENT:Initialize()
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
+            end
 
-                if CLIENT then
-                    self.colors[chunkKey] = Vector()
-                    self.colors[chunkKey]:Random(0,1)
-
-                    self.collisionMeshes[currentConvexIndex] = Mesh()
-                    self.collisionMeshes[currentConvexIndex]:BuildFromTriangles(newConvexes[currentConvexIndex])
-                end
+            if CLIENT then
+                self.collisionMeshes[currentConvexIndex] = Mesh()
+                self.collisionMeshes[currentConvexIndex]:BuildFromTriangles(newConvexes[currentConvexIndex])
             end
         end
     end
