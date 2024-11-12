@@ -198,6 +198,8 @@ function ENT:Initialize()
     end
 
     self:PhysicsDestroy()
+    self:PhysicsInitBox(Vector(0, 0, 0), Vector(0, 0, 0))
+    self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 
     self:SpawnCollisionClones()
 end
