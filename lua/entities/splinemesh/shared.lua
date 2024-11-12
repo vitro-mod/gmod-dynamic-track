@@ -26,6 +26,8 @@ if SERVER then
     ENT.ROLL = 0---6.75
     -- ENT.FORWARD_AXIS = 'X'
     ENT.FORWARD_AXIS = 'Y'
+    ENT.PROFILE = {}
+    ENT.profileStart = 0
 end
 
 function ENT:SetupDataTables()
@@ -39,6 +41,8 @@ function ENT:SetupDataTables()
     self:NetworkVar('Vector', 'OrigPos')
     self:NetworkVar('Angle', 'OrigAngles')
     self:NetworkVar('String', 'ForwardAxis')
+    self:NetworkVar('String', 'Profile')
+    self:NetworkVar('Float', 'ProfileStart')
 end
 
 function ENT:Initialize()
@@ -57,6 +61,8 @@ function ENT:Initialize()
         self:SetOrigPos(self.OrigPos)
         self:SetOrigAngles(self.OrigAngles)
         self:SetForwardAxis(self.FORWARD_AXIS)
+        self:SetProfile(util.TableToJSON(self.PROFILE))
+        self:SetProfileStart(self.profileStart)
     elseif CLIENT then
         self.Model = self:GetMdlFile()
         self.TrackMeshNum = self:GetTrackMeshNum()
@@ -68,6 +74,8 @@ function ENT:Initialize()
         self.OrigPos = self:GetOrigPos()
         self.OrigAngles = self:GetOrigAngles()
         self.FORWARD_AXIS = self:GetForwardAxis()
+        self.PROFILE = util.JSONToTable(self:GetProfile())
+        self.profileStart = self:GetProfileStart()
     end
 
     self.OrigMatrix = Matrix()
@@ -252,6 +260,10 @@ function ENT:BuildSegmentMatricies()
         self.bezierSpline = SplineMesh.ApproximateStraight(length / self.segments)
         self.matricies, self.endMatrix = SplineMesh.StraightSegments(length, self.segments)
     end
+    
+    self.endDistance = self.profileStart + (segmentLength * self.segments)
+
+    SplineMesh.ProfileApplyToMatricies(self.matricies, self.PROFILE, self.profileStart, segmentLength)
 end
 
 function ENT:DeformMesh(MESH)
