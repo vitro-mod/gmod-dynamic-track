@@ -1,4 +1,11 @@
 SplineMesh.Spawn = function(pos, ang, plan, profile)
+    if not plan then
+        print('SplineMesh: plan is not provided!')
+    end
+    if not profile then profile = {} end
+    if not pos then pos = Vector() end
+    if not ang then ang = Angle() end
+
     local splinemeshes = {}
 
     for k,planElement in pairs(plan) do
