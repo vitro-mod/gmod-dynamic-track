@@ -19,6 +19,26 @@ function ENT:CreateMesh()
     end
 end
 
+function ENT:SetupCollisionMeshes()
+    self.wireframe = Material( "editor/wireframe" )
+    local color = self.wireframe:GetVector('$color')
+    color:SetUnpacked(1,1,0)
+    self.wireframe:SetVector('$color', color)
+
+    self.collisionMeshes = {}
+    self.colors = {}
+    self.defaultColor = Vector()
+    self.defaultColor:Random(0,1)
+
+    self.collisionMatrix = Matrix(self.matricies[1])
+    local tr = self.collisionMatrix:GetTranslation()
+    tr.z = 0
+    local an = self.collisionMatrix:GetAngles()
+    an.z = 0
+    self.collisionMatrix:SetTranslation(tr)
+    self.collisionMatrix:SetAngles(an)
+end
+
 -- A special hook to override the normal mesh for rendering
 -- function ENT:GetRenderMesh()
 -- 	-- If the mesh doesn't exist, create it!
@@ -43,7 +63,7 @@ function ENT:DrawModelOrMesh(drawCollision)
         end
 
         if k == 1 and (false or SplineMesh.DrawCollision) and drawCollision then
-            self:DrawCollision(v)
+            self:DrawCollision(self.collisionMatrix)
         end
 
         -- self:Debug(1)

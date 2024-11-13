@@ -102,18 +102,11 @@ function ENT:Initialize()
 
     if CLIENT then
         self:CreateMesh()
+        self:SetupCollisionMeshes()
         --self:SetRenderBounds( self.Mins, self.Maxs )
         self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
 
         self:DrawShadow( false )
-        self.wireframe = Material( "editor/wireframe" )
-        local color = self.wireframe:GetVector('$color')
-        color:SetUnpacked(1,1,0)
-        self.wireframe:SetVector('$color', color)
-        self.collisionMeshes = {}
-        self.colors = {}
-        self.defaultColor = Vector()
-        self.defaultColor:Random(0,1)
 
         self.RenderMatrix = self.OrigMatrix
         if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
