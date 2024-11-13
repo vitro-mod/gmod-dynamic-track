@@ -258,7 +258,7 @@ function ENT:BuildSegmentMatricies()
     
     self.endDistance = self.profileStart + (segmentLength * self.segments)
 
-    SplineMesh.ProfileApplyToMatricies(self.matricies, self.PROFILE, self.profileStart, segmentLength)
+    SplineMesh.ProfileApplyToMatricies(self.matricies, self.endMatrix, self.PROFILE, self.profileStart, segmentLength)
 end
 
 function ENT:DeformMesh(MESH)

@@ -65,21 +65,32 @@ SplineMesh.ProfileSample = function(profile, distance)
     return calculateHeight(profile, distance * 0.01905) / 0.01905
 end
 
-SplineMesh.ProfileApplyToMatrix = function(matrix, profile, segmentNum, segmentLength, profileStart)
-    local distance = profileStart + (segmentNum * segmentLength)
-
-    local height1 = SplineMesh.ProfileSample(profile, distance)
-    local height2 = SplineMesh.ProfileSample(profile, distance + segmentLength)
-    local tan = (height2 - height1) / segmentLength
-
-    local pitch = math.deg(math.atan(tan))
-
-    matrix:SetTranslation(matrix:GetTranslation() + Vector(0, 0, height1))
-    matrix:SetAngles(matrix:GetAngles() + Angle(0, 0, pitch))
-end
-
-SplineMesh.ProfileApplyToMatricies = function(matricies, profile, profileStart, segmentLength)
+SplineMesh.ProfileApplyToMatricies = function(matricies, endMatrix, profile, profileStart, segmentLength)
     for k,matrix in pairs(matricies) do
-        SplineMesh.ProfileApplyToMatrix(matrix, profile, (k-1), segmentLength, profileStart)
+        local distance = profileStart + ((k - 1) * segmentLength)
+        local height = SplineMesh.ProfileSample(profile, distance)
+        local tran = matrix:GetTranslation()
+        tran.z = tran.z + height
+        matrix:SetTranslation(tran)
+
+        if k > 1 then
+            local prevHeight = matricies[k-1]:GetTranslation().z
+            local dh = height - prevHeight
+            local tan = dh / segmentLength
+            local pitch = math.deg(math.atan(tan))
+            local ang = matricies[k-1]:GetAngles()
+            ang.z = pitch
+            matricies[k-1]:SetAngles(ang)
+        end
     end
+
+    local distance = profileStart + (#matricies * segmentLength)
+    local height = SplineMesh.ProfileSample(profile, distance)
+    local prevHeight = matricies[#matricies]:GetTranslation().z
+    local dh = height - prevHeight
+    local tan = dh / segmentLength
+    local pitch = math.deg(math.atan(tan))
+    local ang = matricies[#matricies]:GetAngles()
+    ang.z = pitch
+    matricies[#matricies]:SetAngles(ang)
 end
