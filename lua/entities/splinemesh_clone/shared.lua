@@ -40,12 +40,13 @@ function ENT:GenerateCollision()
             local currentConvexIndex = i * convexesCount + k
             self.chunkPhysics[currentConvexIndex] = {}
             for v,vertex in pairs(convex) do
-                self.chunkPhysics[currentConvexIndex][v] = Vector(vertex.pos)
-                self.chunkPhysics[currentConvexIndex][v]:Rotate(matrix:GetAngles())
-                self.chunkPhysics[currentConvexIndex][v]:Add(matrix:GetTranslation())
-                self.chunkPhysics[currentConvexIndex][v]:Rotate(self.parent.OrigMatrix:GetAngles())
-                self.chunkPhysics[currentConvexIndex][v]:Add(self.parent.OrigMatrix:GetTranslation())
-                self.chunkPhysics[currentConvexIndex][v]:Sub(self.CHUNK_OFFSET * 2 * InfMap.chunk_size)
+                local pos = Vector(vertex.pos)
+                pos:Rotate(matrix:GetAngles())
+                pos:Add(matrix:GetTranslation())
+                pos:Rotate(self.parent.OrigMatrix:GetAngles())
+                pos:Add(self.parent.OrigMatrix:GetTranslation())
+                pos:Sub(self.CHUNK_OFFSET * 2 * InfMap.chunk_size)
+                self.chunkPhysics[currentConvexIndex][v] = pos
             end
         end
         i = i + 1
