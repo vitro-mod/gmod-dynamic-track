@@ -12,6 +12,7 @@ ENT.UNITS_IN_METER = 1 / 0.01905
 if InfMap then
     InfMap.filter['splinemesh'] = true
     InfMap.filter['splinemesh_clone'] = true
+    ENT.PREV_SOURCE_BOUND = 2 * InfMap.chunk_size - 16384
 end
 
 if SERVER then
@@ -136,7 +137,6 @@ function ENT:Initialize()
     
     self.physics = {}
     local newConvexes = {}
-    local prev_source_bound = 2 * InfMap.chunk_size - 16384
 
     for i,matrix in pairs(self.matricies) do
         for k,convex in pairs(self.convexes) do
@@ -161,32 +161,32 @@ function ENT:Initialize()
                 self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                 self.InfMapOffsets[chunkKey][currentConvexIndex] = true
 
-                if wrappedpos.x <= -prev_source_bound then
+                if wrappedpos.x <= -self.PREV_SOURCE_BOUND then
                     local chunkKey = InfMap.ChunkToText(deltachunk - Vector(1, 0, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
-                if wrappedpos.x >= prev_source_bound then
+                if wrappedpos.x >= self.PREV_SOURCE_BOUND then
                     local chunkKey = InfMap.ChunkToText(deltachunk + Vector(1, 0, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
-                if wrappedpos.y <= -prev_source_bound then
+                if wrappedpos.y <= -self.PREV_SOURCE_BOUND then
                     local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 1, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
-                if wrappedpos.y >= prev_source_bound then
+                if wrappedpos.y >= self.PREV_SOURCE_BOUND then
                     local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 1, 0))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
-                if wrappedpos.z <= -prev_source_bound then
+                if wrappedpos.z <= -self.PREV_SOURCE_BOUND then
                     local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 0, 1))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
                 end
-                if wrappedpos.z >= prev_source_bound then
+                if wrappedpos.z >= self.PREV_SOURCE_BOUND then
                     local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 0, 1))
                     self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
                     self.InfMapOffsets[chunkKey][currentConvexIndex] = true
