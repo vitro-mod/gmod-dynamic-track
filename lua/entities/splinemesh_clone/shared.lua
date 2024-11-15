@@ -22,19 +22,34 @@ function ENT:Initialize()
         InfMap.prop_update_chunk(self, self.chunkOffset)
     end
 
+    self:GenerateCollision()
+    self:InitCollision(self.chunkPhysics)
+end
+
+function ENT:GenerateCollision()
     self.chunkPhysics = {}
 
-    local i = 1
-    for convex in pairs(self.parent.InfMapOffsets[self.chunkKey]) do
-        self.chunkPhysics[i] = {}
-        for k2,vertex in pairs(self.parent.physics[convex]) do
-            self.chunkPhysics[i][k2] = Vector(vertex)
-            self.chunkPhysics[i][k2]:Sub(self.CHUNK_OFFSET * 2 * InfMap.chunk_size)
+    local i = 0
+    local convexesCount = #self.parent.convexes
+
+    for matrixNum in pairs(self.parent.ChunkCollisionMatricies[self.chunkKey]) do
+
+        local matrix = self.parent.matricies[matrixNum]
+
+        for k,convex in pairs(self.parent.convexes) do
+            local currentConvexIndex = i * convexesCount + k
+            self.chunkPhysics[currentConvexIndex] = {}
+            for v,vertex in pairs(convex) do
+                self.chunkPhysics[currentConvexIndex][v] = Vector(vertex.pos)
+                self.chunkPhysics[currentConvexIndex][v]:Rotate(matrix:GetAngles())
+                self.chunkPhysics[currentConvexIndex][v]:Add(matrix:GetTranslation())
+                self.chunkPhysics[currentConvexIndex][v]:Rotate(self.parent.OrigMatrix:GetAngles())
+                self.chunkPhysics[currentConvexIndex][v]:Add(self.parent.OrigMatrix:GetTranslation())
+                self.chunkPhysics[currentConvexIndex][v]:Sub(self.CHUNK_OFFSET * 2 * InfMap.chunk_size)
+            end
         end
         i = i + 1
     end
-
-    self:InitCollision(self.chunkPhysics)
 end
 
 function ENT:InitCollision(convexes)

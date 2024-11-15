@@ -139,7 +139,7 @@ function ENT:Initialize()
     self:PhysicsInitBox(Vector(0, 0, 0), Vector(0, 0, 0))
     self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 
-    self:GenerateCollision()
+    self:SortCollisionByChunks()
     self:SpawnCollisionClones()
 end
 
@@ -206,68 +206,34 @@ function ENT:DeformMesh(MESH)
     return MESH
 end
 
-function ENT:GenerateCollision()
-    self.physics = {}
-    local newConvexes = {}
+function ENT:SortCollisionByChunks()
+    self.ChunkCollisionMatricies = {}
+
+    local directions = {
+        {axis = "x", vector = Vector(1, 0, 0)},
+        {axis = "y", vector = Vector(0, 1, 0)},
+        {axis = "z", vector = Vector(0, 0, 1)}
+    }
 
     for i,matrix in pairs(self.matricies) do
-        for k,convex in pairs(self.convexes) do
+        local translation = matrix:GetTranslation()
 
-            local currentConvexIndex = (i - 1) * self.convexesNum + k
+        local wrappedpos, deltachunk = InfMap.localize_vector(translation)
+        local chunkKey = InfMap.ChunkToText(deltachunk)
 
-            newConvexes[currentConvexIndex] = table.CopyAV(convex)
-            self.physics[currentConvexIndex] = {}
+        self.ChunkCollisionMatricies[chunkKey] = self.ChunkCollisionMatricies[chunkKey] or {}
+        self.ChunkCollisionMatricies[chunkKey][i] = true 
 
-            for k2,vertex in pairs(newConvexes[currentConvexIndex]) do
-                self.physics[currentConvexIndex][k2] = vertex.pos
-                vertex.pos:Rotate(matrix:GetAngles())
-                vertex.pos:Add(matrix:GetTranslation())
-                vertex.pos:Rotate(self.OrigMatrix:GetAngles())
-                vertex.pos:Add(self.OrigMatrix:GetTranslation())
-                
-                if not InfMap then continue end
-
-                local wrappedpos, deltachunk = InfMap.localize_vector(vertex.pos)
-                local chunkKey = InfMap.ChunkToText(deltachunk)
-
-                self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-
-                if wrappedpos.x <= -self.PREV_SOURCE_BOUND then
-                    local chunkKey = InfMap.ChunkToText(deltachunk - Vector(1, 0, 0))
-                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-                end
-                if wrappedpos.x >= self.PREV_SOURCE_BOUND then
-                    local chunkKey = InfMap.ChunkToText(deltachunk + Vector(1, 0, 0))
-                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-                end
-                if wrappedpos.y <= -self.PREV_SOURCE_BOUND then
-                    local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 1, 0))
-                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-                end
-                if wrappedpos.y >= self.PREV_SOURCE_BOUND then
-                    local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 1, 0))
-                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-                end
-                if wrappedpos.z <= -self.PREV_SOURCE_BOUND then
-                    local chunkKey = InfMap.ChunkToText(deltachunk - Vector(0, 0, 1))
-                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-                end
-                if wrappedpos.z >= self.PREV_SOURCE_BOUND then
-                    local chunkKey = InfMap.ChunkToText(deltachunk + Vector(0, 0, 1))
-                    self.InfMapOffsets[chunkKey] = self.InfMapOffsets[chunkKey] || {}
-                    self.InfMapOffsets[chunkKey][currentConvexIndex] = true
-                end
+        for _, dir in ipairs(directions) do
+            if wrappedpos[dir.axis] <= -self.PREV_SOURCE_BOUND then
+                local chunkKey = InfMap.ChunkToText(deltachunk - dir.vector)
+                self.ChunkCollisionMatricies[chunkKey] = self.ChunkCollisionMatricies[chunkKey] or {}
+                self.ChunkCollisionMatricies[chunkKey][i] = true
             end
-
-            if CLIENT then
-                self.collisionMeshes[currentConvexIndex] = Mesh()
-                self.collisionMeshes[currentConvexIndex]:BuildFromTriangles(newConvexes[currentConvexIndex])
+            if wrappedpos[dir.axis] >= self.PREV_SOURCE_BOUND then
+                local chunkKey = InfMap.ChunkToText(deltachunk + dir.vector)
+                self.ChunkCollisionMatricies[chunkKey] = self.ChunkCollisionMatricies[chunkKey] or {}
+                self.ChunkCollisionMatricies[chunkKey][i] = true
             end
         end
     end
@@ -280,7 +246,7 @@ function ENT:SpawnCollisionClones()
 
     if not InfMap then return end
 
-    for chunkKey,v in pairs(self.InfMapOffsets) do
+    for chunkKey,v in pairs(self.ChunkCollisionMatricies) do
         local e = ents.Create("splinemesh_clone")
         if ( !IsValid( e ) ) then return end -- Safety first
 
