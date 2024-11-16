@@ -21,9 +21,17 @@ function ENT:Initialize()
         self.chunkOffset = InfMap.TextToChunk(self.chunkKey)
         InfMap.prop_update_chunk(self, self.chunkOffset)
     end
+    
+    self:SetModel(self:GetParentSpline():GetMdlFile())
 
     self:GenerateCollision()
     self:InitCollision(self.chunkPhysics)
+
+    if CLIENT then
+        self:GenerateCollisionMeshes()
+        self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
+    end
+
 end
 
 function ENT:GenerateCollision()
@@ -59,7 +67,7 @@ function ENT:InitCollision(convexes)
     self:SetMoveType(MOVETYPE_NONE)
     self:EnableCustomCollisions(true)
     self:DrawShadow(false)
-    self:SetRenderMode(RENDERMODE_NONE)
+    -- self:SetRenderMode(RENDERMODE_NONE)
     -- self:SetNoDraw(true)
     self:AddSolidFlags(FSOLID_FORCE_WORLD_ALIGNED)
     self:AddFlags(FL_STATICPROP)

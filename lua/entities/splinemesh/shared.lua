@@ -103,7 +103,6 @@ function ENT:Initialize()
 
     if CLIENT then
         self:CreateMesh()
-        self:SetupCollisionMeshes()
         --self:SetRenderBounds( self.Mins, self.Maxs )
         self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
 
@@ -217,12 +216,13 @@ function ENT:SortCollisionByChunks()
 
     for i,matrix in pairs(self.matricies) do
         local translation = matrix:GetTranslation()
+        translation:Add(self.OrigMatrix:GetTranslation())
 
         local wrappedpos, deltachunk = InfMap.localize_vector(translation)
         local chunkKey = InfMap.ChunkToText(deltachunk)
 
         self.ChunkCollisionMatricies[chunkKey] = self.ChunkCollisionMatricies[chunkKey] or {}
-        self.ChunkCollisionMatricies[chunkKey][i] = true 
+        self.ChunkCollisionMatricies[chunkKey][i] = true
 
         for _, dir in ipairs(directions) do
             if wrappedpos[dir.axis] <= -self.PREV_SOURCE_BOUND then

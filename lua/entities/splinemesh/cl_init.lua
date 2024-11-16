@@ -61,17 +61,17 @@ function ENT:Draw()
 end
 
 function ENT:Debug(segm)
-    render.DrawLine(self.bezierSpline.startPos, self.bezierSpline.startTangent, Color(255, 0, 0))
-    render.DrawLine(self.bezierSpline.endPos, self.bezierSpline.endTangent, Color(0, 255, 0))
     for i=1,segm do
         local linePoint1 = self.bezierSpline:Sample((i - 1) / segm)
         local linePoint2 = self.bezierSpline:Sample(i / segm)
         render.DrawLine(linePoint1, linePoint2, Color(255, 255, 0))
-
+        
         local derivative = self.bezierSpline:Derivative():Sample((i - 1) / segm)
         derivative:Normalize()
         derivative:Mul(40)
         local normalPoint2 = linePoint1 + Vector(derivative.y, -derivative.x, derivative.z)
         render.DrawLine(linePoint1, normalPoint2, Color(255, 255, 0))
     end
+    render.DrawLine(self.bezierSpline.startPos, self.bezierSpline.startTangent, Color(255, 0, 0))
+    render.DrawLine(self.bezierSpline.endPos, self.bezierSpline.endTangent, Color(0, 255, 0))
 end
