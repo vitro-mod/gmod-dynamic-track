@@ -1,4 +1,4 @@
-SplineMesh = SplineMesh || {}
+SplineMesh = SplineMesh or {}
 
 --- Approximate circular arc with a CubicBezier
 -- https://math.stackexchange.com/questions/873224/calculate-control-points-of-cubic-bezier-curve-approximating-a-part-of-a-circle

@@ -1,4 +1,4 @@
-SplineMesh = SplineMesh || {}
+SplineMesh = SplineMesh or {}
 
 SplineMesh.Deform = function(mesh, spline, scale, roll, offset)
     local superelevation = Angle(roll, 0, 0)

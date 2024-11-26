@@ -1,4 +1,4 @@
-SplineMesh = SplineMesh || {}
+SplineMesh = SplineMesh or {}
 
 ---Get bounding box of mesh
 --https://wiki.facepunch.com/gmod/util.GetModelMeshes

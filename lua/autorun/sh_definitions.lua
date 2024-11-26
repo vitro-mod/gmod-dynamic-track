@@ -1,0 +1,1 @@
+SplineMesh = SplineMesh or {}

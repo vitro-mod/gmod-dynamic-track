@@ -1,4 +1,4 @@
-SplineMesh = SplineMesh || {}
+SplineMesh = SplineMesh or {}
 
 -- Remove pos key from convexes to make them ready to be fed in PhysicsInitMultiConvex function
 SplineMesh.PrepareConvexes = function(convexes)

@@ -61,7 +61,7 @@ function TOOL:UpdateGhost( ent, ply )
 	if ( !IsValid( ent ) ) then return end
 
 	local trace = ply:GetEyeTrace()
-	if ( !trace.Hit || IsValid( trace.Entity ) && ( trace.Entity:IsPlayer() ) ) then
+	if ( !trace.Hit or IsValid( trace.Entity ) and ( trace.Entity:IsPlayer() ) ) then
 
 		ent:SetNoDraw( true )
 		return

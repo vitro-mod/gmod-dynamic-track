@@ -1,4 +1,4 @@
-SplineMesh = SplineMesh || {}
+SplineMesh = SplineMesh or {}
 
 --- Get matricies of certain number of circular segments
 -- @param number angle Angle in degrees
