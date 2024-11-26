@@ -62,7 +62,7 @@ function ENT:GenerateCollision()
 end
 
 function ENT:InitCollision(convexes)
-    self:PhysicsInitMultiConvex(convexes)
+    self:PhysicsInitMultiConvex(convexes, 'metal')
     self:SetSolid(SOLID_VPHYSICS)
     self:SetMoveType(MOVETYPE_NONE)
     self:EnableCustomCollisions(true)
