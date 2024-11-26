@@ -11,6 +11,9 @@ TOOL.Information = {
 TOOL.ClientConVar = {}
 TOOL.ClientConVar['model'] = 'models/nekrasovskaya/depo_strelka_1_5_left.mdl'
 TOOL.ClientConVar['dynamic'] = 1
+TOOL.ClientConVar['snapnum'] = 1
+
+local angle_opposite = Angle(0,180,0)
 
 if CLIENT then
 	language.Add('Tool.splinemesh.name', 'SplineMesh Tool')
@@ -21,6 +24,7 @@ if CLIENT then
 end
 
 function TOOL:LeftClick(trace)
+	if not IsFirstTimePredicted() then return end
 	if CLIENT then return true end
 	if not trace.Hit then return false end
 
@@ -31,7 +35,8 @@ function TOOL:LeftClick(trace)
 	ang.x = ang.x + 90
 	ang.y = self:GetOwner():GetAngles().y - 90
 
-	local pos, ang = self:FindSnap(trace.HitPos, ang)
+	local pos, ang = self:Snap(trace.HitPos, ang)
+	pos, ang = self:RotateSnap(pos, ang)
 
 	ent:SetPos(pos)
 	ent:SetAngles( ang )
@@ -46,9 +51,22 @@ function TOOL:LeftClick(trace)
 end
 
 function TOOL:RightClick(trace)
+	if not IsFirstTimePredicted() then return end
+	-- print(self:GetClientNumber('snapnum'))
 end
 
 function TOOL:Reload(trace)
+	if not IsFirstTimePredicted() then return end
+
+	if CLIENT then
+		local snapnum = self.ClientConVars['snapnum']
+		snapnum:SetInt(snapnum:GetInt() + 1)
+		if snapnum:GetInt() > #SplineMesh.Definitions.Static[self:GetClientInfo('model')].snaps then
+			snapnum:SetInt(1)
+		end
+	end
+
+	-- print(self:GetClientNumber('snapnum'))
 end
 
 -- function TOOL:Deploy()
@@ -77,7 +95,8 @@ function TOOL:UpdateGhost( ent, ply )
 	ang.x = ang.x + 90
 	ang.y = ply:GetAngles().y - 90
 
-	pos, ang = self:FindSnap(pos, ang)
+	pos, ang = self:Snap(pos, ang)
+	pos, ang = self:RotateSnap(pos, ang)
 
 	ent:SetPos( pos )
 	ent:SetAngles( ang )
@@ -85,7 +104,7 @@ function TOOL:UpdateGhost( ent, ply )
 	ent:SetNoDraw( false )
 end
 
-function TOOL:FindSnap(pos, ang)
+function TOOL:Snap(pos, ang)
 	local resultPos = pos
 	local resultAng = ang
 
@@ -99,6 +118,30 @@ function TOOL:FindSnap(pos, ang)
 			end
 		end
 	end
+
+	return resultPos, resultAng
+end
+
+function TOOL:RotateSnap(pos, ang)
+	if not self._pos then self._pos = Vector(pos) end
+
+	local resultPos = pos
+	local resultAng = ang
+	
+	local staticDef = SplineMesh.Definitions.Static[self:GetClientInfo('model')]
+    if not staticDef then return resultPos, resultAng end
+    if not staticDef.snaps then return resultPos, resultAng end
+	
+	local snap = staticDef.snaps[self:GetClientNumber('snapnum')]
+
+    if not snap then return resultPos, resultAng end
+
+	self._pos:Set(snap.pos)
+
+	ang:Sub(snap.ang)
+	ang:Add(angle_opposite)
+	self._pos:Rotate(ang)
+	pos:Sub(self._pos)
 
 	return resultPos, resultAng
 end
@@ -197,5 +240,6 @@ cvars.AddChangeCallback('splinemesh_model', function(convar, old, new)
 
 	local TOOL = LocalPlayer():GetTool("splinemesh")
 	TOOL:ReleaseGhostEntity()
+	TOOL.ClientConVars['snapnum']:SetInt(1)
 
 end, 'splinemesh_model_tool')
