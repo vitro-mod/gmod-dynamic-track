@@ -24,14 +24,16 @@ function TOOL:LeftClick(trace)
 	if CLIENT then return true end
 	if not trace.Hit then return false end
 
-	PrintTable(trace)
-
 	local ent = ents.Create( "splinemesh_static" )
 	ent.Model = self:GetClientInfo('model')
-	ent:SetPos(trace.HitPos)
+
 	local ang = trace.HitNormal:Angle()
-	ang.pitch = ang.pitch + 90
+	ang.x = ang.x + 90
 	ang.y = self:GetOwner():GetAngles().y - 90
+
+	local pos, ang = self:FindSnap(trace.HitPos, ang)
+
+	ent:SetPos(pos)
 	ent:SetAngles( ang )
 	ent:Spawn()
 
@@ -68,16 +70,37 @@ function TOOL:UpdateGhost( ent, ply )
 
 	end
 
-	local ang = trace.HitNormal:Angle()
-	ang.pitch = ang.pitch + 90
-
 	local min = ent:OBBMins()
-	ent:SetPos( trace.HitPos - trace.HitNormal * min.z )
+	local pos = trace.HitPos - trace.HitNormal * min.z
+
+	local ang = trace.HitNormal:Angle()
+	ang.x = ang.x + 90
 	ang.y = ply:GetAngles().y - 90
+
+	pos, ang = self:FindSnap(pos, ang)
+
+	ent:SetPos( pos )
 	ent:SetAngles( ang )
 
 	ent:SetNoDraw( false )
+end
 
+function TOOL:FindSnap(pos, ang)
+	local resultPos = pos
+	local resultAng = ang
+
+	for _,e in pairs(ents.FindByClass('splinemesh_static')) do
+		if not e.Snaps then continue end
+
+		for __,snap in pairs(e.Snaps) do
+			if snap:GetTranslation():Distance2DSqr(pos) < 80 * 80 then
+				resultPos = snap:GetTranslation()
+				resultAng = snap:GetAngles()
+			end
+		end
+	end
+
+	return resultPos, resultAng
 end
 
 function TOOL:Think()

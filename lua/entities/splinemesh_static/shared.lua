@@ -75,9 +75,10 @@ function ENT:Initialize()
     self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
     self:PhysicsDestroy()
 
-
     self:SortCollisionByChunks()
     self:SpawnCollisionClones()
+
+    self:SetupSnaps()
 end
 
 function ENT:SortCollisionByChunks()
@@ -135,4 +136,22 @@ function ENT:SpawnCollisionClones()
         print('SpawnCollisionClones: ', e)
         e:Spawn()
     end
+end
+
+function ENT:SetupSnaps()
+    self.Snaps = {}
+    
+    local staticDef = SplineMesh.Definitions.Static[self:GetMdlFile()]
+
+    if not staticDef then return end
+    if not staticDef.snaps then return end
+
+    for k,v in pairs(staticDef.snaps) do
+        local snap = Matrix(self.OrigMatrix)
+        snap:Translate(v.pos)
+        snap:Rotate(v.ang)
+        self.Snaps[k] = snap
+    end
+
+    -- PrintTable(self.Snaps)
 end
