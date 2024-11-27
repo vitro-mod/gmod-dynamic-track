@@ -59,11 +59,13 @@ function TOOL:Reload(trace)
 	if not IsFirstTimePredicted() then return end
 
 	if CLIENT then
+		if not SplineMesh.Definitions.Static[self:GetClientInfo('model')] then return false end
 		local snapnum = self.ClientConVars['snapnum']
 		snapnum:SetInt(snapnum:GetInt() + 1)
 		if snapnum:GetInt() > #SplineMesh.Definitions.Static[self:GetClientInfo('model')].snaps then
 			snapnum:SetInt(1)
 		end
+		-- return true
 	end
 
 	-- print(self:GetClientNumber('snapnum'))

@@ -72,13 +72,14 @@ function ENT:Initialize()
 
     self:PhysicsDestroy()
     self:PhysicsInitBox(Vector(0, 0, 0), Vector(0, 0, 0))
-    self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+    -- self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
     self:PhysicsDestroy()
 
     self:SortCollisionByChunks()
     self:SpawnCollisionClones()
 
     self:SetupSnaps()
+    self:SpawnDoors()
 end
 
 function ENT:SortCollisionByChunks()
@@ -142,7 +143,6 @@ function ENT:SetupSnaps()
     self.Snaps = {}
     
     local staticDef = SplineMesh.Definitions.Static[self:GetMdlFile()]
-
     if not staticDef then return end
     if not staticDef.snaps then return end
 
@@ -154,4 +154,31 @@ function ENT:SetupSnaps()
     end
 
     -- PrintTable(self.Snaps)
+end
+
+function ENT:SpawnDoors()
+    if not SERVER then return end
+    self.Doors = {}
+
+    local staticDef = SplineMesh.Definitions.Static[self:GetMdlFile()]
+    if not staticDef then return end
+    if not staticDef.doors then return end
+
+    for k,doorDef in pairs(staticDef.doors) do
+        local door = ents.Create('prop_door_rotating')
+        door:SetModel(doorDef.model)
+        door:PhysicsInit(SOLID_VPHYSICS)
+        -- door:SetMoveType(MOVETYPE_NONE)
+        -- door:DrawShadow(false)
+        -- door:SetParent(self)
+        door:SetPos(self:LocalToWorld(doorDef.pos))
+        door:SetAngles(self:LocalToWorldAngles(doorDef.ang))
+        door:SetKeyValue("returndelay","-1")
+        door:SetKeyValue("distance","1.5")
+        door:SetKeyValue("speed","0.4")
+        door:SetKeyValue("soundmoveoverride","autoswitch_amb_tun.wav")
+        door:SetKeyValue("soundcloseoverride","common/null.wav")
+        door:Spawn()
+        self.Doors[k] = door
+    end
 end
