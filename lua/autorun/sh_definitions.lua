@@ -14,8 +14,8 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(-2.22 * uim, 19.312 * uim, 0), ang = Angle(0,10.3,0)},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = "1", pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = "1", pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
         }
     },
     ['models/nekrasovskaya/depo_strelka_1_5_right.mdl'] = {
@@ -25,8 +25,8 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(2.22 * uim, 19.312 * uim, 0), ang = Angle(0,-10.3,0)},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = "2", pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = "2", pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
         }
     },
     ['models/nekrasovskaya/depo_strelka_1_5_left_syezd.mdl'] = {
@@ -37,10 +37,10 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(-4.305 * uim, 37.88 * uim, 0), ang = Angle()},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', pos = Vector((-0.649-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180-1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', pos = Vector((0.797-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = "1", pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = "1", pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = "1", pos = Vector((-0.649-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180-1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = "1", pos = Vector((0.797-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
         }
     },
     ['models/nekrasovskaya/depo_strelka_1_5_right_syezd.mdl'] = {
@@ -51,10 +51,10 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(4.305 * uim, 37.88 * uim, 0), ang = Angle()},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', pos = Vector((0.649+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180+1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', pos = Vector((-0.797+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = "2", pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = "2", pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = "2", pos = Vector((0.649+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180+1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = "2", pos = Vector((-0.797+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
         }
     },
 }
