@@ -113,13 +113,13 @@ function TOOL:GetPosAng(trace, ent)
 	ang.x = ang.x + 90
 	ang.y = self:GetOwner():GetAngles().y - 90
 
-	pos, ang = self:Snap(pos, ang)
-	pos, ang = self:RotateSnap(pos, ang)
-
 	if self:GetClientNumber('anglegrid') == 1 then
 		local step = self:GetClientNumber('anglegrid_step')
 		ang.y = math.floor((ang.y - (step / 2)) / step) * step + (step)
 	end
+
+	pos, ang = self:Snap(pos, ang)
+	pos, ang = self:RotateSnap(pos, ang)
 
 	return pos, ang
 end
