@@ -52,7 +52,13 @@ end
 
 function TOOL:RightClick(trace)
 	if not IsFirstTimePredicted() then return end
-	-- print(self:GetClientNumber('snapnum'))
+
+	if not trace.Hit then return false end
+	if not IsValid(trace.Entity) then return false end
+	if trace.Entity:GetClass() == 'splinemesh_clone' then
+		if CLIENT then return true end
+		SafeRemoveEntity(trace.Entity.parent)
+	end
 end
 
 function TOOL:Reload(trace)
