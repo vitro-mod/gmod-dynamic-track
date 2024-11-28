@@ -12,6 +12,7 @@ TOOL.ClientConVar = {}
 TOOL.ClientConVar['model'] = 'models/nekrasovskaya/depo_strelka_1_5_left.mdl'
 TOOL.ClientConVar['dynamic'] = 1
 TOOL.ClientConVar['snapnum'] = 1
+TOOL.ClientConVar['name'] = ''
 
 local angle_opposite = Angle(0,180,0)
 
@@ -28,6 +29,10 @@ function TOOL:LeftClick(trace)
 	if CLIENT then return true end
 	if not trace.Hit then return false end
 
+	return self:SpawnStatic(trace)
+end
+
+function TOOL:SpawnStatic(trace)
 	local ent = ents.Create( "splinemesh_static" )
 	ent.Model = self:GetClientInfo('model')
 
@@ -38,6 +43,7 @@ function TOOL:LeftClick(trace)
 	local pos, ang = self:Snap(trace.HitPos, ang)
 	pos, ang = self:RotateSnap(pos, ang)
 
+	ent:SetName(self:GetClientInfo('name'))
 	ent:SetPos(pos)
 	ent:SetAngles( ang )
 	ent:Spawn()
@@ -193,6 +199,14 @@ function TOOL:BuildCPanel()
     local CPanel = controlpanel.Get('splinemesh')
     if not CPanel then return end
 
+	local buildPropTable = function(modelList)
+		local result = {}
+		for k,v in pairs(modelList) do
+			result[k] = {model = k}
+		end
+		return result
+	end
+
 	self.UI = {}
 
     CPanel:ClearControls()
@@ -214,12 +228,9 @@ function TOOL:BuildCPanel()
 			['models/metrostroi/tracks/tunnel256_gamma.mdl'] = {model = 'models/metrostroi/tracks/tunnel256_gamma.mdl'}
 		})
 	else
-		self.UI.StaticModels = CPanel:PropSelect('Static models:', 'splinemesh_model', {
-			['models/nekrasovskaya/depo_strelka_1_5_left.mdl'] = {model = 'models/nekrasovskaya/depo_strelka_1_5_left.mdl'},
-			['models/nekrasovskaya/depo_strelka_1_5_left_syezd.mdl'] = {model = 'models/nekrasovskaya/depo_strelka_1_5_left_syezd.mdl'},
-			['models/nekrasovskaya/depo_strelka_1_5_right.mdl'] = {model = 'models/nekrasovskaya/depo_strelka_1_5_right.mdl'},
-			['models/nekrasovskaya/depo_strelka_1_5_right_syezd.mdl'] = {model = 'models/nekrasovskaya/depo_strelka_1_5_right_syezd.mdl'},
-		})
+		self.UI.StaticModels = CPanel:PropSelect('Static models:', 'splinemesh_model', buildPropTable(SplineMesh.Definitions.Static))
+
+		self.UI.Name = CPanel:TextEntry('Name: ', 'splinemesh_name')
 	end
 
 	if self.UpdateCPanel then self:UpdateCPanel() end
