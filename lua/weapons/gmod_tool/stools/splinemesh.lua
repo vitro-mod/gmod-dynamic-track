@@ -13,6 +13,8 @@ TOOL.ClientConVar['model'] = 'models/nekrasovskaya/depo_strelka_1_5_left.mdl'
 TOOL.ClientConVar['dynamic'] = 1
 TOOL.ClientConVar['snapnum'] = 1
 TOOL.ClientConVar['name'] = ''
+TOOL.ClientConVar['anglegrid'] = 0
+TOOL.ClientConVar['anglegrid_step'] = 1
 
 local angle_opposite = Angle(0,180,0)
 
@@ -35,13 +37,9 @@ end
 function TOOL:SpawnStatic(trace)
 	local ent = ents.Create( "splinemesh_static" )
 	ent.Model = self:GetClientInfo('model')
+	ent:SetModel(ent.Model)
 
-	local ang = trace.HitNormal:Angle()
-	ang.x = ang.x + 90
-	ang.y = self:GetOwner():GetAngles().y - 90
-
-	local pos, ang = self:Snap(trace.HitPos, ang)
-	pos, ang = self:RotateSnap(pos, ang)
+	local pos, ang = self:GetPosAng(trace, ent)
 
 	ent:SetName(self:GetClientInfo('name'))
 	ent:SetPos(pos)
@@ -90,32 +88,40 @@ end
 function TOOL:Holster()
 end
 
-function TOOL:UpdateGhost( ent, ply )
-
+function TOOL:UpdateGhost()
+	local ent = self.GhostEntity
 	if ( !IsValid( ent ) ) then return end
 
-	local trace = ply:GetEyeTrace()
+	local trace = self:GetOwner():GetEyeTrace()
 	if ( !trace.Hit or IsValid( trace.Entity ) and ( trace.Entity:IsPlayer() ) ) then
-
 		ent:SetNoDraw( true )
 		return
-
 	end
 
-	local min = ent:OBBMins()
-	local pos = trace.HitPos - trace.HitNormal * min.z
-
-	local ang = trace.HitNormal:Angle()
-	ang.x = ang.x + 90
-	ang.y = ply:GetAngles().y - 90
-
-	pos, ang = self:Snap(pos, ang)
-	pos, ang = self:RotateSnap(pos, ang)
+	local pos, ang = self:GetPosAng(trace, ent)
 
 	ent:SetPos( pos )
 	ent:SetAngles( ang )
 
 	ent:SetNoDraw( false )
+end
+
+function TOOL:GetPosAng(trace, ent)
+	local min = ent:OBBMins()
+	local pos = trace.HitPos - trace.HitNormal * min.z
+	local ang = trace.HitNormal:Angle()
+	ang.x = ang.x + 90
+	ang.y = self:GetOwner():GetAngles().y - 90
+
+	pos, ang = self:Snap(pos, ang)
+	pos, ang = self:RotateSnap(pos, ang)
+
+	if self:GetClientNumber('anglegrid') == 1 then
+		local step = self:GetClientNumber('anglegrid_step')
+		ang.y = math.floor((ang.y - (step / 2)) / step) * step + (step)
+	end
+
+	return pos, ang
 end
 
 function TOOL:Snap(pos, ang)
@@ -165,7 +171,7 @@ function TOOL:Think()
 		self:MakeGhostEntity(self:GetClientInfo('model'), vector_origin, angle_zero )
 	end
 
-	self:UpdateGhost( self.GhostEntity, self:GetOwner() )
+	self:UpdateGhost()
 end
 -- if SERVER then util.AddNetworkString('splinemesh_tool') end
 -- TOOL.settings = TOOL.settings or {}
@@ -232,6 +238,9 @@ function TOOL:BuildCPanel()
 
 		self.UI.Name = CPanel:TextEntry('Name: ', 'splinemesh_name')
 	end
+	
+	self.UI.AngleGrid = CPanel:CheckBox('Snap to angle grid: ', 'splinemesh_anglegrid')
+	self.UI.AngleGridStep = CPanel:NumSlider('Angle grid step: ', 'splinemesh_anglegrid_step', 1, 90, 0)
 
 	if self.UpdateCPanel then self:UpdateCPanel() end
 end
