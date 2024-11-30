@@ -128,15 +128,23 @@ function TOOL:Snap(pos, ang)
 	local resultPos = pos
 	local resultAng = ang
 
+	if CLIENT and InfMap then
+		resultPos = InfMap.unlocalize_vector(resultPos, self:GetOwner().CHUNK_OFFSET)
+	end
+
 	for _,e in pairs(ents.FindByClass('splinemesh_static')) do
 		if not e.Snaps then continue end
 
 		for __,snap in pairs(e.Snaps) do
-			if snap:GetTranslation():Distance2DSqr(pos) < 80 * 80 then
+			if snap:GetTranslation():Distance2DSqr(resultPos) < 80 * 80 then
 				resultPos = snap:GetTranslation()
 				resultAng = snap:GetAngles()
 			end
 		end
+	end
+
+	if CLIENT and InfMap then
+		resultPos = InfMap.localize_vector(resultPos)
 	end
 
 	return resultPos, resultAng
