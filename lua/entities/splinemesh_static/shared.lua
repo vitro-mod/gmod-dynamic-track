@@ -153,6 +153,12 @@ function ENT:SetupSnaps()
         self.Snaps[k] = snap
     end
 
+    if staticDef.center then
+        local center = Matrix(self.OrigMatrix)
+        center:Translate(staticDef.center)
+        self.Center = center
+    end
+
     -- PrintTable(self.Snaps)
 end
 

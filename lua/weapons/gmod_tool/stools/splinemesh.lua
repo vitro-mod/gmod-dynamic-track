@@ -88,6 +88,8 @@ end
 function TOOL:Holster()
 end
 
+TOOL.Color = Color(255,0,0)
+
 function TOOL:UpdateGhost()
 	local ent = self.GhostEntity
 	if ( !IsValid( ent ) ) then return end
@@ -119,6 +121,7 @@ function TOOL:GetPosAng(trace, ent)
 	end
 
 	pos, ang = self:Snap(pos, ang)
+	pos, ang = self:SnapIntersections(pos, ang)
 	pos, ang = self:RotateSnap(pos, ang)
 
 	return pos, ang
@@ -171,6 +174,72 @@ function TOOL:RotateSnap(pos, ang)
 	self._pos:Rotate(ang)
 	pos:Sub(self._pos)
 
+	if self:GetOwner():KeyDown(IN_SPEED) and staticDef.center then
+		if not self._center then self._center = Vector(staticDef.center) end
+		self._center:Set(staticDef.center)
+		self._center:Rotate(ang)
+		pos:Add((self._pos - self._center))
+	end
+
+	return resultPos, resultAng
+end
+
+function TOOL:SnapIntersections(pos, ang)
+	local resultPos = pos
+	local resultAng = ang
+
+	if not self:GetOwner():KeyDown(IN_SPEED) then return resultPos, resultAng end
+
+	if CLIENT and InfMap then
+		resultPos = InfMap.unlocalize_vector(resultPos, self:GetOwner().CHUNK_OFFSET)
+	end
+
+	-- if not CLIENT then return resultPos, resultAng end
+
+	local potentialIntersections = {}
+	for _,e in pairs(ents.FindInSphere(pos, 2000)) do
+		if e:GetClass() ~= 'splinemesh_static' then continue end
+		if not e.Snaps then continue end
+		
+		for __,snap in pairs(e.Snaps) do
+			-- render.DrawSphere( snap:GetTranslation(), 10, 10, 10, Color( 255, 0, 0) )
+			table.insert(potentialIntersections, {
+				start = snap:GetTranslation(),
+				finish = snap:GetTranslation() + snap:GetAngles():Right() * 3000,
+				angle = snap:GetAngles(),
+				entity = e
+			})
+		end
+	end
+	
+	for k,v in pairs(potentialIntersections) do
+		for k2,v2 in pairs(potentialIntersections) do
+			if k == k2 then continue end
+			local abs1 = math.abs(v.angle.y)
+			local abs2 = math.abs(v2.angle.y)
+			if abs1 - abs2 < 1 then continue end
+			if abs1 - abs2 > 179.5 and abs1 - abs2 < 180.5 then continue end
+			
+			local isIntersecting, dist1, dist2 = util.IsRayIntersectingRay(v.start, v.finish, v2.start, v2.finish)
+			local point = v.angle:Right() * dist1 + v.start
+			if CLIENT then
+				cam.Start3D()
+				if isIntersecting then render.DrawLine(v.start, point, self.Color) end
+				if isIntersecting then render.DrawSphere( point, 10, 10, 10, self.Color ) end
+				cam.End3D()
+			end
+			if point:Distance2DSqr(resultPos) < 80 * 80 then
+				resultPos = point
+				-- resultAng = (self:GetOwner():GetAngles().y - v2.angle.y < self:GetOwner():GetAngles().y - v.angle.y) and v2.angle or v.angle
+				resultAng = v2.angle
+			end
+		end
+	end
+
+	if CLIENT and InfMap then
+		resultPos = InfMap.localize_vector(resultPos)
+	end
+
 	return resultPos, resultAng
 end
 
@@ -178,7 +247,9 @@ function TOOL:Think()
 	if not self.GhostEntity then
 		self:MakeGhostEntity(self:GetClientInfo('model'), vector_origin, angle_zero )
 	end
+end
 
+function TOOL:DrawHUD()
 	self:UpdateGhost()
 end
 -- if SERVER then util.AddNetworkString('splinemesh_tool') end
@@ -209,17 +280,17 @@ end
 --     end
 -- end)
 
+local function buildPropTable(modelList)
+	local result = {}
+	for k,v in pairs(modelList) do
+		result[k] = {model = k}
+	end
+	return result
+end
+
 function TOOL:BuildCPanel()
     local CPanel = controlpanel.Get('splinemesh')
     if not CPanel then return end
-
-	local buildPropTable = function(modelList)
-		local result = {}
-		for k,v in pairs(modelList) do
-			result[k] = {model = k}
-		end
-		return result
-	end
 
 	self.UI = {}
 
