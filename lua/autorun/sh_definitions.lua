@@ -101,6 +101,13 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(0, 512, 0), ang = Angle()},
         }
     },
+    ['models/nekrasovskaya/depo_track_768_povorot_10p25.mdl'] = {
+        snaps = {
+            {pos = Vector(), ang = Angle(0, 180, 0)},
+            {pos = Vector(1.305 * uim, 14.55 * uim, 0), ang = Angle(0,-10.3,0)},
+        },
+        snapCenter = true,
+    },
 }
 
 local function countCenters()
@@ -108,9 +115,9 @@ local function countCenters()
         if not v.snapCenter then continue end
 
         local start = v.snaps[1].pos
-        local finish = v.snaps[2].pos
-        local divergingStart = v.snaps[3].pos
-        local divergingFinish = v.snaps[3].pos + v.snaps[3].ang:Right() * finish.y
+        local finish = v.snaps[1].pos + (v.snaps[1].ang + Angle(0,180,0)):Right():GetNegated() * 2000
+        local divergingStart = v.snaps[#v.snaps].pos
+        local divergingFinish = v.snaps[#v.snaps].pos + v.snaps[#v.snaps].ang:Right() * finish.y
 
         local isIntersecting, dist1, dist2 = util.IsRayIntersectingRay(start, finish, divergingStart, divergingFinish)
 
