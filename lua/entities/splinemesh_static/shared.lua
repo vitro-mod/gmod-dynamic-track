@@ -10,7 +10,6 @@ ENT.METERS_IN_UNIT = 0.01905 --0.0254*0.75
 ENT.UNITS_IN_METER = 1 / 0.01905
 
 if InfMap then
-    InfMap.filter['splinemesh_static'] = true
     InfMap.filter['splinemesh_clone'] = true
     ENT.PREV_SOURCE_BOUND = 2 * InfMap.chunk_size - 16384
 end
