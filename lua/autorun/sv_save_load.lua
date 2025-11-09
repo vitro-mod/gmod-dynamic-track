@@ -26,9 +26,9 @@ end
 
 function SplineMesh.Save()
     if not file.Exists("splinemesh_data", "DATA") then
-		file.CreateDir("splinemesh_data")
-	end
-	name = name or game.GetMap()
+        file.CreateDir("splinemesh_data")
+    end
+    name = name or game.GetMap()
 
     local entities = {}
 
@@ -45,8 +45,8 @@ function SplineMesh.Save()
     print("SplineMesh: Saving splinemeshes...")
     local data = util.TableToJSON(entities, true)
     local filename = string.format("splinemesh_data/splinemeshes_%s.txt", name)
-	file.Write(filename, data)
-	print(string.format("Saved to %s",filename))
+    file.Write(filename, data)
+    print(string.format("Saved to %s",filename))
 end
 
 function SplineMesh.Load()

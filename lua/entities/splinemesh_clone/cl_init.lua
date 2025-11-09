@@ -27,11 +27,11 @@ function ENT:Draw()
 
     if InfMap.ChunkToText(LocalPlayer().CHUNK_OFFSET) ~= self.chunkKey then return end
 
-    -- The material to render our mesh with
-    render.SetMaterial( self.wireframe )
+    -- -- The material to render our mesh with
+    -- render.SetMaterial( self.wireframe )
 
-    for k2,imesh in pairs(self.collisionIMeshes) do            
-        -- Draw our mesh
-        imesh:Draw()
-    end
+    -- for k2,imesh in pairs(self.collisionIMeshes) do            
+    --     -- Draw our mesh
+    --     imesh:Draw()
+    -- end
 end

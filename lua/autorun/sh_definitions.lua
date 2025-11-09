@@ -14,8 +14,8 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(-2.22 * uim, 19.312 * uim, 0), ang = Angle(0,10.3,0)},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = "1", pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = "1", pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = '1', pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = '1', pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
         },
         snapCenter = true,
     },
@@ -26,8 +26,8 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(2.22 * uim, 19.312 * uim, 0), ang = Angle(0,-10.3,0)},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = "2", pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = "2", pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = '2', pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = '2', pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
         },
         snapCenter = true,
     },
@@ -39,10 +39,10 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(-4.305 * uim, 37.88 * uim, 0), ang = Angle()},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = "1", pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = "1", pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = "1", pos = Vector((-0.649-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180-1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = "1", pos = Vector((0.797-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = '1', pos = Vector(0.649*uim, 5.29*uim, 0), ang = Angle(0, -1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = '1', pos = Vector(-0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_1.mdl', opendir = '1', pos = Vector((-0.649-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180-1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_left_ostryak_2.mdl', opendir = '1', pos = Vector((0.797-4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
         }
     },
     ['models/nekrasovskaya/depo_strelka_1_5_right_syezd.mdl'] = {
@@ -53,10 +53,10 @@ SplineMesh.Definitions.Static = {
             {pos = Vector(4.305 * uim, 37.88 * uim, 0), ang = Angle()},
         },
         doors = {
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = "2", pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = "2", pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = "2", pos = Vector((0.649+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180+1.5, 0)},
-            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = "2", pos = Vector((-0.797+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = '2', pos = Vector(-0.649*uim, 5.29*uim, 0), ang = Angle(0, 1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = '2', pos = Vector(0.797*uim, 5.29*uim, 0), ang = Angle(0, 0, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_1.mdl', opendir = '2', pos = Vector((0.649+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180+1.5, 0)},
+            {model = 'models/nekrasovskaya/depo_strelka_1_5_right_ostryak_2.mdl', opendir = '2', pos = Vector((-0.797+4.305)*uim, (37.88-5.29)*uim, 0), ang = Angle(0, 180, 0)},
         }
     },
     ['models/nekrasovskaya/depo_track_71.mdl'] = {
@@ -110,6 +110,29 @@ SplineMesh.Definitions.Static = {
     },
 }
 
+SplineMesh.Definitions.Dynamic = {
+    ['models/mn_r/mn_r.mdl'] = {
+        model = 'models/mn_r/mn_r.mdl',
+        forward_axis = 'X',
+        track_mesh_num = 1,
+    },
+    ['models/metrostroi/tracks/metrotrack_256.mdl'] = {
+        model = 'models/metrostroi/tracks/metrotrack_256.mdl',
+        forward_axis = 'Y',
+        track_mesh_num = 3,
+    },
+    ['models/metrostroi/tracks/tunnel256_gamma.mdl'] = {
+        model = 'models/metrostroi/tracks/tunnel256_gamma.mdl',
+        forward_axis = 'Y',
+        track_mesh_num = 3,
+    },
+    ['models/mn_r/mn_t_rn1.mdl'] = {
+        model = 'models/mn_r/mn_t_rn1.mdl',
+        forward_axis = 'X',
+        track_mesh_num = 1,
+    },
+}
+
 local function countCenters()
     for k,v in pairs(SplineMesh.Definitions.Static) do
         if not v.snapCenter then continue end
@@ -135,11 +158,12 @@ end
 
 local function reloadDoors()
     if not SERVER then return end
-
-    for k,v in pairs(e.Doors) do
-        v:Remove()
+    for _,e in pairs(ents.FindByClass('splinemesh_static')) do
+        for k,v in pairs(e.Doors) do
+            v:Remove()
+        end
+        e:SpawnDoors()
     end
-    e:SpawnDoors()
 end
 
 countCenters()

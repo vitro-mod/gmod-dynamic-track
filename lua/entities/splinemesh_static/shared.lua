@@ -1,16 +1,16 @@
-ENT.Type 			= "anim"
-ENT.Base 			= "base_anim"
-ENT.PrintName		= "Physics SplineMesh Static"
-ENT.Author			= "vitro_mod"
+ENT.Type             = "anim"
+ENT.Base             = "base_anim"
+ENT.PrintName        = "Physics SplineMesh Static"
+ENT.Author            = "vitro_mod"
 
-ENT.Spawnable		= false
-ENT.AdminSpawnable	= false
+ENT.Spawnable        = false
+ENT.AdminSpawnable    = false
 
 ENT.METERS_IN_UNIT = 0.01905 --0.0254*0.75
 ENT.UNITS_IN_METER = 1 / 0.01905
 
 if InfMap then
-    InfMap.filter['splinemesh_clone'] = true
+    InfMap.filter["splinemesh_clone"] = true
     ENT.PREV_SOURCE_BOUND = 2 * InfMap.chunk_size - 16384
 end
 
@@ -19,9 +19,9 @@ if SERVER then
 end
 
 function ENT:SetupDataTables()
-    self:NetworkVar('String', 'MdlFile')
-    self:NetworkVar('Vector', 'OrigPos')
-    self:NetworkVar('Angle', 'OrigAngles')
+    self:NetworkVar("String", "MdlFile")
+    self:NetworkVar("Vector", "OrigPos")
+    self:NetworkVar("Angle", "OrigAngles")
 end
 
 function ENT:Initialize()
@@ -48,18 +48,6 @@ function ENT:Initialize()
     self:SetModel( self.Model )
     self:PhysicsInit(SOLID_VPHYSICS)
 
-    if CLIENT then
-        --self:SetRenderBounds( self.Mins, self.Maxs )
-        self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
-
-        self:DrawShadow( false )
-
-        self.RenderMatrix = self.OrigMatrix
-        if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
-            self.RenderMatrix = Matrix() -- otherwise we multiply on zero matrix and model disappears
-        end
-    end
-
     self.convexes = self:GetPhysicsObject():GetMeshConvexes()
     self.matricies = {Matrix()}
 
@@ -71,7 +59,7 @@ function ENT:Initialize()
 
     self:PhysicsDestroy()
     self:PhysicsInitBox(Vector(0, 0, 0), Vector(0, 0, 0))
-    -- self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+    self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
     self:PhysicsDestroy()
 
     self:SortCollisionByChunks()
@@ -133,14 +121,14 @@ function ENT:SpawnCollisionClones()
         e.chunkKey = chunkKey
         e:SetChunkKey(chunkKey)
 
-        print('SpawnCollisionClones: ', e)
+        print("SpawnCollisionClones: ", e)
         e:Spawn()
     end
 end
 
 function ENT:SetupSnaps()
     self.Snaps = {}
-    
+
     local staticDef = SplineMesh.Definitions.Static[self:GetMdlFile()]
     if not staticDef then return end
     if not staticDef.snaps then return end
@@ -150,6 +138,8 @@ function ENT:SetupSnaps()
         snap:Translate(v.pos)
         snap:Rotate(v.ang)
         self.Snaps[k] = snap
+
+        SplineMesh.Spatial.Insert(snap:GetTranslation(), self:EntIndex() .. "_" .. k, {ent = self, snapKey = k})
     end
 
     if staticDef.center then
@@ -165,12 +155,12 @@ function ENT:SpawnDoors()
     if not SERVER then return end
     self.Doors = {}
 
-    local staticDef = SplineMesh.Definitions.Static[self:GetMdlFile()]
+    local staticDef = SplineMesh.Definitions.Static[self:GetModel()]
     if not staticDef then return end
     if not staticDef.doors then return end
 
     for k,doorDef in pairs(staticDef.doors) do
-        local door = ents.Create('prop_door_rotating')
+        local door = ents.Create("prop_door_rotating")
         door:SetModel(doorDef.model)
         door:PhysicsInit(SOLID_VPHYSICS)
         -- door:SetMoveType(MOVETYPE_NONE)
@@ -185,6 +175,15 @@ function ENT:SpawnDoors()
         door:SetKeyValue("opendir",doorDef.opendir)
         door:SetKeyValue("soundmoveoverride","autoswitch_amb_tun.wav")
         door:SetKeyValue("soundcloseoverride","common/null.wav")
+        door:SetKeyValue("spawnflags", "8192")
+        if k == 1 then
+        -- print("targetname", self:GetName().."_"..self:EntIndex())
+        door:SetKeyValue("targetname", self:GetName() .. "_" .. self:EntIndex())
+        end
+        if k == 2 then
+        door:SetKeyValue("slavename", self:GetName() .. "_" .. self:EntIndex())
+        -- print("slavename", self:GetName().."_"..self:EntIndex())
+        end
         door:Spawn()
         self.Doors[k] = door
     end

@@ -6,7 +6,7 @@ SplineMesh = SplineMesh or {}
 -- @param radius number Radius of arc
 -- @return Bezier3 Approximated spline
 SplineMesh.ApproximateArc = function(angle, radius)
-    
+
     -- if angle == 0 then return end
 
     local isRight = angle > 0

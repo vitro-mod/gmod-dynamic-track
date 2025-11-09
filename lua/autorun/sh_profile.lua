@@ -48,7 +48,7 @@ local function calculateHeight(profile, distance)
 
                 if endDifference < 0 then dh = -dh end
             end
-                
+
             height = height + remainingDistance * sectionSlope + dh
             break
         else

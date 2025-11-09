@@ -1,10 +1,10 @@
-ENT.Type 			= "anim"
-ENT.Base 			= "base_anim"
-ENT.PrintName		= "Physics SplineMesh"
-ENT.Author			= "vitro_mod"
+ENT.Type             = "anim"
+ENT.Base             = "base_anim"
+ENT.PrintName        = "Physics SplineMesh"
+ENT.Author            = "vitro_mod"
 
-ENT.Spawnable		= false
-ENT.AdminSpawnable	= false
+ENT.Spawnable        = false
+ENT.AdminSpawnable    = false
 
 ENT.METERS_IN_UNIT = 0.01905 --0.0254*0.75
 ENT.UNITS_IN_METER = 1 / 0.01905
@@ -16,8 +16,10 @@ if InfMap then
 end
 
 if SERVER then
-    ENT.Model = "models/mn_r/mn_r_noall.mdl"
-    ENT.TrackMeshNum = 1
+    ENT.Model = "models/mn_r/mn_t_rn1.mdl"
+    ENT.TrackMeshNum = 3
+    -- ENT.Model = "models/mn_r/mn_r_noall.mdl"
+    -- ENT.TrackMeshNum = 1
     -- ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
     -- ENT.TrackMeshNum = 3
     -- ENT.Model = "models/nekrasovskaya/tunnel_2track_round_434.mdl"
@@ -84,8 +86,8 @@ function ENT:Initialize()
     self.OrigMatrix = Matrix()
     self.OrigMatrix:Translate(self.OrigPos)
     self.OrigMatrix:Rotate(self.OrigAngles)
-    self:SetPos( Vector(0,0,0) ) -- Set pos where is player looking
-    self:SetAngles( Angle(0,0,0) )
+    -- self:SetPos( Vector(0,0,0) ) -- Set pos where is player looking
+    -- self:SetAngles( Angle(0,0,0) )
 
     self:InitMeshes()
     if not self.Meshes then
@@ -97,9 +99,6 @@ function ENT:Initialize()
     self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
     self:DeformMeshes()
-
-    self:SetModel( self.Model )
-    self:PhysicsInit(SOLID_VPHYSICS)
 
     if CLIENT then
         self:CreateMesh()
@@ -114,18 +113,25 @@ function ENT:Initialize()
         end
     end
 
-    self.convexes = self:GetPhysicsObject():GetMeshConvexes()
-    self.convexesNum = #self.convexes
-    for k,v in pairs(self.convexes) do
-        self.convexes[k] = {verticies = v}
+    -- self.NoPhysics = true
 
-        if self.FORWARD_AXIS == 'X' then
-            SplineMesh.RotateXY(self.convexes[k])
+    if not self.NoPhysics then
+        self:SetModel( self.Model )
+        self:PhysicsInit(SOLID_VPHYSICS)
+
+        self.convexes = self:GetPhysicsObject():GetMeshConvexes()
+        self.convexesNum = #self.convexes
+        for k,v in pairs(self.convexes) do
+            self.convexes[k] = {verticies = v}
+
+            if self.FORWARD_AXIS == 'X' then
+                SplineMesh.RotateXY(self.convexes[k])
+            end
+
+            self:DeformMesh(self.convexes[k])
+
+            self.convexes[k] = self.convexes[k].verticies
         end
-
-        self:DeformMesh(self.convexes[k])
-
-        self.convexes[k] = self.convexes[k].verticies
     end
 
     if InfMap then
@@ -135,18 +141,23 @@ function ENT:Initialize()
     end
 
     self:PhysicsDestroy()
-    self:PhysicsInitBox(Vector(0, 0, 0), Vector(0, 0, 0))
-    self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
 
-    self:SortCollisionByChunks()
-    self:SpawnCollisionClones()
+    if not self.NoPhysics then
+        self:PhysicsInitBox(Vector(0, 0, 0), Vector(0, 0, 0))
+        self:SetCollisionGroup(COLLISION_GROUP_DEBRIS)
+
+        self:SortCollisionByChunks()
+        self:SpawnCollisionClones()
+    end
+
+    self:SetupSnaps()
 end
 
 function ENT:InitMeshes()
     self.Meshes = util.GetModelMeshes( self.Model )
-	if not self.Meshes then return end
+    if not self.Meshes then return end
     
-	self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
+    self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
 end
 
 function ENT:PrepareMeshes()
@@ -260,4 +271,12 @@ function ENT:SpawnCollisionClones()
         print('SpawnCollisionClones: ', e)
         e:Spawn()
     end
+end
+
+function ENT:SetupSnaps()
+    self.Snaps = {}
+    local begin = Matrix(self.OrigMatrix)
+    begin:Rotate(Angle(0, 180, 0))
+    self.Snaps[1] = begin
+    self.Snaps[2] = Matrix(self.endMatrix)
 end

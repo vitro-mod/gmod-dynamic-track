@@ -1,6 +1,7 @@
 SplineMesh.Spawn = function(pos, ang, plan, profile)
     if not plan then
         print('SplineMesh: plan is not provided!')
+        return false
     end
     if not profile then profile = {} end
     if not pos then pos = Vector() end
@@ -32,4 +33,6 @@ SplineMesh.Spawn = function(pos, ang, plan, profile)
 
         splinemeshes[k]:Spawn() -- Instantiate prop
     end
+
+    return splinemeshes
 end

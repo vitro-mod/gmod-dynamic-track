@@ -4,6 +4,10 @@ SplineMesh = SplineMesh or {}
 --https://wiki.facepunch.com/gmod/util.GetModelMeshes
 --@param mesh The mesh table like returned by util.GetModelMeshes
 SplineMesh.GetBoundingBox = function(mesh)
+    if not mesh or not mesh.verticies then
+        error("SplineMesh.GetBoundingBox: Invalid mesh provided")
+    end
+
     local firstPos = mesh.verticies[1].pos
     local minX, minY, minZ = firstPos:Unpack()
     local maxX, maxY, maxZ = minX, minY, minZ

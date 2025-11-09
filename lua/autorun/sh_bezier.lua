@@ -38,11 +38,11 @@ end
 
 -- function _b2derivative(self)
 --     local p0 = self.startPos
--- 	local p1 = self.tangent
--- 	local p2 = self.endPos
+--     local p1 = self.tangent
+--     local p2 = self.endPos
 
 --     local d0 = 2*(p1-p0)
--- 	local d1 = 2*(p2-p1)
+--     local d1 = 2*(p2-p1)
 
 --     return d0, d1
 -- end
@@ -50,13 +50,13 @@ end
 function _b3derivative(self)
     if self._derivative then return self._derivative end
     local p0 = self.startPos
-	local p1 = self.startTangent
-	local p2 = self.endTangent
-	local p3 = self.endPos
+    local p1 = self.startTangent
+    local p2 = self.endTangent
+    local p3 = self.endPos
 
     local d0 = 3*(p1-p0)
-	local d1 = 3*(p2-p1)
-	local d2 = 3*(p3-p2)
+    local d1 = 3*(p2-p1)
+    local d2 = 3*(p3-p2)
 
     self._derivative = Bezier2(d0, d1, d2)
     return self._derivative
