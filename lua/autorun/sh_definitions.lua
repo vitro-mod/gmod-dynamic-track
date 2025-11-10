@@ -131,6 +131,16 @@ SplineMesh.Definitions.Dynamic = {
         forward_axis = 'X',
         track_mesh_num = 1,
     },
+    ['models/kalininskaya/tunnel_roundnew_512.mdl'] = {
+        model = 'models/kalininskaya/tunnel_roundnew_512.mdl',
+        forward_axis = 'Y',
+        track_mesh_num = 4,
+    },
+    ['models/kalininskaya/tunnel_kvadrat_512.mdl'] = {
+        model = 'models/kalininskaya/tunnel_kvadrat_512.mdl',
+        forward_axis = 'Y',
+        track_mesh_num = 4,
+    },
 }
 
 local function countCenters()

@@ -90,8 +90,9 @@ function ENT:Initialize()
     -- self:SetAngles( Angle(0,0,0) )
 
     self:InitMeshes()
-    if not self.Meshes then
+    if not self.Meshes or #self.Meshes == 0 then
         print('SplineMesh invalid meshes!', self)
+        if SERVER then SafeRemoveEntity(self) end
         return
     end
 
@@ -156,7 +157,7 @@ end
 function ENT:InitMeshes()
     self.Meshes = util.GetModelMeshes( self.Model )
     if not self.Meshes then return end
-    
+
     self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
 end
 
@@ -278,5 +279,5 @@ function ENT:SetupSnaps()
     local begin = Matrix(self.OrigMatrix)
     begin:Rotate(Angle(0, 180, 0))
     self.Snaps[1] = begin
-    self.Snaps[2] = Matrix(self.endMatrix)
+    self.Snaps[2] = self.OrigMatrix * self.endMatrix
 end
