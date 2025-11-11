@@ -99,7 +99,7 @@ function ENT:Debug(segm)
         local linePoint1 = self.bezierSpline:Sample((i - 1) / segm)
         local linePoint2 = self.bezierSpline:Sample(i / segm)
         render.DrawLine(linePoint1, linePoint2, Color(255, 255, 0))
-        
+
         local derivative = self.bezierSpline:Derivative():Sample((i - 1) / segm)
         derivative:Normalize()
         derivative:Mul(40)
