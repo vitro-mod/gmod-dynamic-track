@@ -33,6 +33,7 @@ if SERVER then
     -- ENT.FORWARD_AXIS = 'Y'
     ENT.PROFILE = {}
     ENT.profileStart = 0
+    ENT.FLIP_MODEL = false
 end
 
 function ENT:SetupDataTables()
@@ -48,6 +49,7 @@ function ENT:SetupDataTables()
     self:NetworkVar('String', 'ForwardAxis')
     self:NetworkVar('String', 'Profile')
     self:NetworkVar('Float', 'ProfileStart')
+    self:NetworkVar('Bool', 'FlipModel')
 end
 
 function ENT:Initialize()
@@ -68,6 +70,7 @@ function ENT:Initialize()
         self:SetForwardAxis(self.FORWARD_AXIS)
         self:SetProfile(util.TableToJSON(self.PROFILE))
         self:SetProfileStart(self.profileStart)
+        self:SetFlipModel(self.FLIP_MODEL)
     elseif CLIENT then
         self.Model = self:GetMdlFile()
         self.TrackMeshNum = self:GetTrackMeshNum()
@@ -81,6 +84,7 @@ function ENT:Initialize()
         self.FORWARD_AXIS = self:GetForwardAxis()
         self.PROFILE = util.JSONToTable(self:GetProfile())
         self.profileStart = self:GetProfileStart()
+        self.FLIP_MODEL = self:GetFlipModel()
     end
 
     self.OrigMatrix = Matrix()
@@ -162,6 +166,21 @@ function ENT:InitMeshes()
 end
 
 function ENT:PrepareMeshes()
+    -- if self.FLIP_MODEL then
+        -- for k,currentMesh in pairs(self.Meshes) do
+        --     for k2,v2 in pairs(currentMesh.verticies) do
+        --         v2.pos.x = -v2.pos.x
+        --     end
+        --     // also need to reverse the order of the triangles
+        --     // do it without new allocations
+        --     for i=1, #currentMesh.triangles, 3 do
+        --         currentMesh.triangles[i], currentMesh.triangles[i+2] = currentMesh.triangles[i+2], currentMesh.triangles[i]
+        --         -- currentMesh.triangles[i].normal = currentMesh.triangles[i].normal * -1
+        --     end
+        -- end
+
+    -- end
+
     if self.FORWARD_AXIS ~= 'X' then return end
 
     for k,currentMesh in pairs(self.Meshes) do
@@ -194,15 +213,15 @@ function ENT:BuildSegmentMatricies()
 
         self.segments = math.Round(arc / segmentLength)
         if self.segments == 0 then self.segments = 1 end
-        self.bezierSpline = SplineMesh.ApproximateArc(self.ANGLE / self.segments, radius)
-        self.matricies, self.endMatrix = SplineMesh.ArcSegments(self.ANGLE / self.segments, self.bezierSpline.endPos, self.segments)
+        self.bezierSpline = SplineMesh.ApproximateArc(self.ANGLE / self.segments, radius, self.FLIP_MODEL)
+        self.matricies, self.endMatrix = SplineMesh.ArcSegments(self.ANGLE / self.segments, self.bezierSpline[self.FLIP_MODEL and 'startPos' or 'endPos'], self.segments)
     else
         self.segments = math.Round(length / segmentLength)
         if self.segments == 0 then self.segments = 1 end
-        self.bezierSpline = SplineMesh.ApproximateStraight(length / self.segments)
+        self.bezierSpline = SplineMesh.ApproximateStraight(length / self.segments, self.FLIP_MODEL)
         self.matricies, self.endMatrix = SplineMesh.StraightSegments(length, self.segments)
     end
-    
+
     self.endDistance = self.profileStart + (segmentLength * self.segments)
 
     SplineMesh.ProfileApplyToMatricies(self.matricies, self.endMatrix, self.PROFILE, self.profileStart, segmentLength)

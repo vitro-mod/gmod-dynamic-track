@@ -126,8 +126,18 @@ SplineMesh.Definitions.Dynamic = {
         forward_axis = 'Y',
         track_mesh_num = 3,
     },
+    ['models/mn_r/mn_t_kv1.mdl'] = {
+        model = 'models/mn_r/mn_t_kv1.mdl',
+        forward_axis = 'X',
+        track_mesh_num = 1,
+    },
     ['models/mn_r/mn_t_rn1.mdl'] = {
         model = 'models/mn_r/mn_t_rn1.mdl',
+        forward_axis = 'X',
+        track_mesh_num = 1,
+    },
+    ['models/mn_r/mn_t_rn2.mdl'] = {
+        model = 'models/mn_r/mn_t_rn2.mdl',
         forward_axis = 'X',
         track_mesh_num = 1,
     },

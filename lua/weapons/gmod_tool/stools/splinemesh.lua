@@ -21,6 +21,7 @@ TOOL.ClientConVar['curve_angle'] = -20
 TOOL.ClientConVar['track_length'] = 50
 TOOL.ClientConVar['forward_axis'] = 'Y'
 TOOL.ClientConVar['track_mesh_num'] = 1
+TOOL.ClientConVar['flip_model'] = 0
 
 local angle_opposite = Angle(0,180,0)
 
@@ -78,6 +79,7 @@ function TOOL:SpawnDynamic(trace)
     ent.ANGLE = self:GetClientNumber('curve_angle')
     ent.LENGTH = self:GetClientNumber('track_length')
     ent.FORWARD_AXIS = self:GetClientInfo('forward_axis')
+    ent.FLIP_MODEL = self:GetClientNumber('flip_model') == 1
     ent:Spawn()
 
     undo.Create('splinemesh')
@@ -381,6 +383,7 @@ function TOOL:BuildCPanel()
         self.UI.DynamicModels = CPanel:PropSelect('Dynamic models:', 'splinemesh_model', buildPropTable(SplineMesh.Definitions.Dynamic))
 
         self.UI.IsCurve = CPanel:CheckBox('Curve', 'splinemesh_is_curve')
+        self.UI.IsFlip = CPanel:CheckBox('Flip Model', 'splinemesh_flip_model')
         self.UI.Radius = CPanel:NumSlider('Curve Radius: ', 'splinemesh_curve_radius', 0, 10000, 0)
         self.UI.Angle = CPanel:NumSlider('Curve Angle: ', 'splinemesh_curve_angle', -180, 180, 0)
         self.UI.Length = CPanel:NumSlider('Track Length: ', 'splinemesh_track_length', 0, 1000, 0)

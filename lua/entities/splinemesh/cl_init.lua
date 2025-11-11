@@ -27,37 +27,38 @@ end
 --     return { Mesh = self.IMesh, Material = self.myMaterial }
 -- end
 
--- local lightPos1 = Vector(130, 140, 180)
--- local lightPos2 = Vector(130, 440, 180)
--- local lightPos3 = Vector(-100, 300, 180)
+local lightPos1 = Vector(90, 140, 150)
+local lightPos2 = Vector(90, 440, 150)
+local lightPos3 = Vector(-90, 175, 160)
 
 function ENT:DrawModelOrMesh(drawCollision)
-    --- Research needed: Which method is more efficient?
     local matrix = Matrix()
-    -- local light1 = Vector()
-    -- local light2 = Vector()
-    -- local light3 = Vector()
-    -- render.SuppressEngineLighting(true)
-    -- render.ResetModelLighting(0, 0, 0)
-    -- render.SuppressEngineLighting(false)
+    local light1 = Vector()
+    local light2 = Vector()
+    local light3 = Vector()
+    render.SuppressEngineLighting(true)
+    render.ResetModelLighting(0, 0, 0)
+    render.SuppressEngineLighting(false)
     for k,v in pairs(self.matricies) do
         matrix = SplineMesh.RenderOffset * self.RenderMatrix * v
-        -- light1:SetUnpacked(lightPos1:Unpack())
-        -- light1:Rotate(matrix:GetAngles())
-        -- light2:SetUnpacked(lightPos2:Unpack())
-        -- light2:Rotate(matrix:GetAngles())
-        -- light3:SetUnpacked(lightPos3:Unpack())
-        -- light3:Rotate(matrix:GetAngles())
-        -- render.SetLocalModelLights({
-            -- { type = MATERIAL_LIGHT_POINT, pos = matrix:GetTranslation() + lightPos1, fiftyPercentDistance = 100, zeroPercentDistance = 200, color = Vector(1, 0.5, 0.25) * 2 },
-            -- { type = MATERIAL_LIGHT_POINT, pos = matrix:GetTranslation() + lightPos2, fiftyPercentDistance = 100, zeroPercentDistance = 200, color = Vector(1, 0.5, 0.25) * 2 },
-            -- { type = MATERIAL_LIGHT_POINT, pos = matrix:GetTranslation() + lightPos3, fiftyPercentDistance = 100, zeroPercentDistance = 200, color = Vector(1, 1, 1) * 2 },
-        -- })
+
+        light1:SetUnpacked(lightPos1:Unpack())
+        light1:Rotate(matrix:GetAngles())
+        light2:SetUnpacked(lightPos2:Unpack())
+        light2:Rotate(matrix:GetAngles())
+        light3:SetUnpacked(lightPos3:Unpack())
+        light3:Rotate(matrix:GetAngles())
+        render.SetLocalModelLights({
+            { type = MATERIAL_LIGHT_POINT, pos = matrix:GetTranslation() + lightPos1, fiftyPercentDistance = 100, zeroPercentDistance = 200, color = Vector(1, 0.5, 0.25) * 2 },
+            { type = MATERIAL_LIGHT_POINT, pos = matrix:GetTranslation() + lightPos2, fiftyPercentDistance = 100, zeroPercentDistance = 200, color = Vector(1, 0.5, 0.25) * 2 },
+            { type = MATERIAL_LIGHT_POINT, pos = matrix:GetTranslation() + lightPos3, fiftyPercentDistance = 100, zeroPercentDistance = 200, color = Vector(1, 1, 1)      * 2 },
+        })
         cam.PushModelMatrix( matrix )
         for k2,imesh in pairs(self.IMeshes) do
             render.SetMaterial(self.IMaterials[k2])
             self.IMeshes[k2]:Draw()
         end
+        -- self:Debug(2)
         cam.PopModelMatrix()
     end
 
