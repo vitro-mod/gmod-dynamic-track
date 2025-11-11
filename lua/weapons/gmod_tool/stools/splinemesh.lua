@@ -22,6 +22,9 @@ TOOL.ClientConVar['track_length'] = 50
 TOOL.ClientConVar['forward_axis'] = 'Y'
 TOOL.ClientConVar['track_mesh_num'] = 1
 TOOL.ClientConVar['flip_model'] = 0
+TOOL.ClientConVar['intertrack_spacing'] = 0
+
+TOOL.IntertrackSpacingVector = Vector(0,0,0)
 
 local angle_opposite = Angle(0,180,0)
 
@@ -75,9 +78,9 @@ function TOOL:SpawnDynamic(trace)
     ent:SetPos(pos)
     ent:SetAngles( ang )
     ent.CURVE = self:GetClientNumber('is_curve') == 1
-    ent.RADIUS = self:GetClientNumber('curve_radius')
+    ent.RADIUS = self:GetClientNumber('curve_radius') / 1000
     ent.ANGLE = self:GetClientNumber('curve_angle')
-    ent.LENGTH = self:GetClientNumber('track_length')
+    ent.LENGTH = self:GetClientNumber('track_length') / 1000
     ent.FORWARD_AXIS = self:GetClientInfo('forward_axis')
     ent.FLIP_MODEL = self:GetClientNumber('flip_model') == 1
     ent:Spawn()
@@ -138,6 +141,8 @@ function TOOL:UpdateGhost()
 
     local pos, ang = self:GetPosAng(trace, ent)
 
+    if self:GetClientInfo('forward_axis') == 'X' then ang:RotateAroundAxis(ang:Up(), -90) end
+
     ent:SetPos( pos )
     ent:SetAngles( ang )
 
@@ -159,6 +164,12 @@ function TOOL:GetPosAng(trace, ent)
     pos, ang = self:Snap(pos, ang)
     pos, ang = self:SnapIntersections(pos, ang)
     pos, ang = self:RotateSnap(pos, ang)
+
+    if self:GetOwner():KeyDown(IN_WALK) then
+        self.IntertrackSpacingVector.y = self:GetClientNumber('intertrack_spacing') / 1000 / 0.01905
+        pos:Add(ang:Forward() * self.IntertrackSpacingVector.y)
+        ang:RotateAroundAxis(ang:Up(), 180)
+    end
 
     return pos, ang
 end
@@ -382,11 +393,12 @@ function TOOL:BuildCPanel()
     if isDynamic then
         self.UI.DynamicModels = CPanel:PropSelect('Dynamic models:', 'splinemesh_model', buildPropTable(SplineMesh.Definitions.Dynamic))
 
+        self.UI.IntertrackSpacing = CPanel:NumSlider('Intertrack Spacing, mm: ', 'splinemesh_intertrack_spacing', -50000, 50000, 0)
         self.UI.IsCurve = CPanel:CheckBox('Curve', 'splinemesh_is_curve')
         self.UI.IsFlip = CPanel:CheckBox('Flip Model', 'splinemesh_flip_model')
-        self.UI.Radius = CPanel:NumSlider('Curve Radius: ', 'splinemesh_curve_radius', 0, 10000, 0)
-        self.UI.Angle = CPanel:NumSlider('Curve Angle: ', 'splinemesh_curve_angle', -180, 180, 0)
-        self.UI.Length = CPanel:NumSlider('Track Length: ', 'splinemesh_track_length', 0, 1000, 0)
+        self.UI.Radius = CPanel:NumSlider('Curve Radius, mm: ', 'splinemesh_curve_radius', 0, 100000, 0)
+        self.UI.Angle = CPanel:NumSlider('Curve Angle, degrees: ', 'splinemesh_curve_angle', -180, 180, 0)
+        self.UI.Length = CPanel:NumSlider('Track Length, mm: ', 'splinemesh_track_length', 0, 1000000, 0)
     else
         self.UI.StaticModels = CPanel:PropSelect('Static models:', 'splinemesh_model', buildPropTable(SplineMesh.Definitions.Static))
 
