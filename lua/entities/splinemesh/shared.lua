@@ -100,13 +100,18 @@ function ENT:Initialize()
         return
     end
 
-    self:PrepareMeshes()
+    -- self:PrepareMeshes()
+
     self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
-    self:DeformMeshes()
+    -- profiler.start('SplineMesh DeformMeshes')
+    -- self:DeformMeshes()
+    -- profiler.fin('SplineMesh DeformMeshes')
 
     if CLIENT then
+        -- profiler.start('SplineMesh CreateMesh')
         self:CreateMesh()
+        -- profiler.fin('SplineMesh CreateMesh')
         --self:SetRenderBounds( self.Mins, self.Maxs )
         self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
 
@@ -116,6 +121,7 @@ function ENT:Initialize()
         if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
             self.RenderMatrix = Matrix() -- otherwise we multiply on zero matrix and model disappears
         end
+        self.TestMaterial = Material('gmod_shader_guide/example10.vmt')
     end
 
     -- self.NoPhysics = true
@@ -159,34 +165,32 @@ function ENT:Initialize()
 end
 
 function ENT:InitMeshes()
-    self.Meshes = util.GetModelMeshes( self.Model )
+    local Meshes = SplineMesh.Cache.Get(self.Model)
+    if not Meshes then
+        Meshes = util.GetModelMeshes( self.Model )
+
+        if self.FORWARD_AXIS == 'X' then
+            for k,currentMesh in pairs(Meshes) do
+                SplineMesh.RotateXY(currentMesh)
+            end
+        end
+
+        SplineMesh.Cache.Set(self.Model, Meshes)
+    end
+
+    self.Meshes = Meshes
     if not self.Meshes then return end
 
     self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
 end
 
-function ENT:PrepareMeshes()
-    -- if self.FLIP_MODEL then
-        -- for k,currentMesh in pairs(self.Meshes) do
-        --     for k2,v2 in pairs(currentMesh.verticies) do
-        --         v2.pos.x = -v2.pos.x
-        --     end
-        --     // also need to reverse the order of the triangles
-        --     // do it without new allocations
-        --     for i=1, #currentMesh.triangles, 3 do
-        --         currentMesh.triangles[i], currentMesh.triangles[i+2] = currentMesh.triangles[i+2], currentMesh.triangles[i]
-        --         -- currentMesh.triangles[i].normal = currentMesh.triangles[i].normal * -1
-        --     end
-        -- end
+-- function ENT:PrepareMeshes()
+--     if self.FORWARD_AXIS ~= 'X' then return end
 
-    -- end
-
-    if self.FORWARD_AXIS ~= 'X' then return end
-
-    for k,currentMesh in pairs(self.Meshes) do
-        SplineMesh.RotateXY(currentMesh)
-    end
-end
+--     for k,currentMesh in pairs(self.Meshes) do
+--         SplineMesh.RotateXY(currentMesh)
+--     end
+-- end
 
 function ENT:CountMeshBoundingBox()
     local min, max = SplineMesh.GetBoundingBox(self.TrackMesh)
@@ -201,14 +205,20 @@ function ENT:DeformMeshes()
     end
 end
 
-function ENT:BuildSegmentMatricies()
+function ENT:DeformMesh(MESH)
+    local segmentLength = self.Maxs.y - self.Mins.y
+    local offset = Vector(0, -self.Mins.y, 0)
+    return SplineMesh.Deform(MESH, self.bezierSpline, segmentLength, self.ROLL, offset)
+end
 
+function ENT:BuildSegmentMatricies()
     local radius = self.RADIUS * self.UNITS_IN_METER
     local length = self.LENGTH * self.UNITS_IN_METER
 
     local segmentLength = self.Maxs.y - self.Mins.y
+    self.SegmentLength = segmentLength
 
-    if self.CURVE then 
+    if self.CURVE then
         local arc = math.rad(math.abs(self.ANGLE)) * radius
 
         self.segments = math.Round(arc / segmentLength)
@@ -225,15 +235,6 @@ function ENT:BuildSegmentMatricies()
     self.endDistance = self.profileStart + (segmentLength * self.segments)
 
     SplineMesh.ProfileApplyToMatricies(self.matricies, self.endMatrix, self.PROFILE, self.profileStart, segmentLength)
-end
-
-function ENT:DeformMesh(MESH)
-    local segmentLength = self.Maxs.y - self.Mins.y
-    local offset = Vector(0, -self.Mins.y, 0)
-
-    MESH = SplineMesh.Deform(MESH, self.bezierSpline, segmentLength, self.ROLL, offset)
-
-    return MESH
 end
 
 function ENT:SortCollisionByChunks()
