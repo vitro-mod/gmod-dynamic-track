@@ -13,6 +13,8 @@ function ENT:CreateMesh()
     self.IMeshes = {}
     self.IMaterials = {}
 
+    if not self.Meshes then return end
+
     for k,currentMesh in pairs(self.Meshes) do
         local IMaterial = SplineMesh.Cache.Get("IMATERIAL:" .. currentMesh.material)
         if not IMaterial then
@@ -53,6 +55,8 @@ function ENT:DrawModelOrMesh(drawCollision)
     -- render.SuppressEngineLighting(true)
     -- render.ResetModelLighting(0, 0, 0)
     -- render.SuppressEngineLighting(false)
+
+    if not self.bezierSpline then return end
 
     render.OverrideDepthEnable(true, true)
     render.SuppressEngineLighting(true)
