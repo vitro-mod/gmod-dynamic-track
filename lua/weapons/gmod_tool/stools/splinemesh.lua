@@ -186,6 +186,11 @@ function TOOL:Snap(pos, ang)
         if not e.Snaps then continue end
 
         for __,snap in pairs(e.Snaps) do
+            if CLIENT then
+                cam.Start3D()
+                render.DrawSphere(snap:GetTranslation(), 10, 10, 10, Color(255, 0, 0))
+                cam.End3D()
+            end
             if snap:GetTranslation():Distance2DSqr(resultPos) < 65 * 65 then
                 resultPos = snap:GetTranslation()
                 resultAng = snap:GetAngles()
@@ -197,6 +202,11 @@ function TOOL:Snap(pos, ang)
         if not e.Snaps then continue end
 
         for __,snap in pairs(e.Snaps) do
+            if CLIENT then
+                cam.Start3D()
+                render.DrawSphere(snap:GetTranslation(), 10, 10, 10, Color(255, 0, 0))
+                cam.End3D()
+            end
             if snap:GetTranslation():Distance2DSqr(resultPos) < 65 * 65 then
                 resultPos = snap:GetTranslation()
                 resultAng = snap:GetAngles()
@@ -260,7 +270,6 @@ function TOOL:SnapIntersections(pos, ang)
         if not e.Snaps then continue end
 
         for __,snap in pairs(e.Snaps) do
-            -- render.DrawSphere( snap:GetTranslation(), 10, 10, 10, Color( 255, 0, 0) )
             table.insert(potentialIntersections, {
                 start = snap:GetTranslation(),
                 finish = snap:GetTranslation() + snap:GetAngles():Right() * 3000,
