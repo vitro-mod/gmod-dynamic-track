@@ -28,10 +28,17 @@ SplineMesh.GetBoundingBox = function(mesh)
 end
 
 SplineMesh.RotateXY = function(mesh)
-    for k,v in pairs(mesh.verticies) do
-        local x = v.pos.x
-        v.pos.x = v.pos.y
-        v.pos.y = -x
+    local seen = {}
+    for _, vertex in ipairs(mesh.verticies) do
+        if not seen[vertex] then
+            seen[vertex] = true
+            local pos = vertex.pos
+            vertex.pos = Vector(pos.y, -pos.x, pos.z)
+            if vertex.normal then
+                local normal = vertex.normal
+                vertex.normal = Vector(normal.y, -normal.x, normal.z)
+            end
+        end
     end
 end
 

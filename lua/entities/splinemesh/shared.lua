@@ -29,8 +29,8 @@ if SERVER then
     ENT.LENGTH = 50
     ENT.CURVE = false
     ENT.ROLL = 0---6.75
-    -- ENT.FORWARD_AXIS = 'X'
-    ENT.FORWARD_AXIS = 'Y'
+    ENT.FORWARD_AXIS = 'X'
+    -- ENT.FORWARD_AXIS = 'Y'
     ENT.PROFILE = {}
     ENT.profileStart = 0
     ENT.FLIP_MODEL = false
@@ -94,34 +94,28 @@ function ENT:Initialize()
     -- self:SetAngles( Angle(0,0,0) )
 
     self:InitMeshes()
-    if not self.Meshes or #self.Meshes == 0 then
-        print('SplineMesh invalid meshes!', self)
+    if not self.TrackMesh or not self.TrackMesh.verticies or not self.TrackMesh.verticies[1] then
+        print('SplineMesh invalid track mesh!', self)
         if SERVER then SafeRemoveEntity(self) end
         return
     end
 
-    self:PrepareMeshes()
-
     self:CountMeshBoundingBox()
+    if self.SegmentLength <= 0 then
+        print('SplineMesh track mesh has no length!', self)
+        if SERVER then SafeRemoveEntity(self) end
+        return
+    end
+
     self:BuildSegmentMatricies()
-    -- profiler.start('SplineMesh DeformMeshes')
-    self:DeformMeshes()
-    -- profiler.fin('SplineMesh DeformMeshes')
 
     if CLIENT then
-        -- profiler.start('SplineMesh CreateMesh')
-        self:CreateMesh()
-        -- profiler.fin('SplineMesh CreateMesh')
-        --self:SetRenderBounds( self.Mins, self.Maxs )
-        self:SetRenderBounds( Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000) )
-
-        self:DrawShadow( false )
-
+        self:SetRenderBounds(Vector(-50000, -50000, -50000), Vector(50000, 50000, 50000))
+        self:DrawShadow(false)
         self.RenderMatrix = self.OrigMatrix
-        if self.RenderMatrix:GetAngles():IsZero() and self.RenderMatrix:GetTranslation():IsZero() then
-            self.RenderMatrix = Matrix() -- otherwise we multiply on zero matrix and model disappears
+        if self.OrigAngles:IsZero() and self.OrigPos:IsZero() then
+            self.RenderMatrix = Matrix()
         end
-        self.TestMaterial = Material('gmod_shader_guide/example10.vmt')
     end
 
     -- self.NoPhysics = true
@@ -165,58 +159,38 @@ function ENT:Initialize()
 end
 
 function ENT:InitMeshes()
-    local Meshes = SplineMesh.Cache.Get(self.Model)
-    if not Meshes then
-        Meshes = util.GetModelMeshes( self.Model )
-
-        if self.FORWARD_AXIS == 'X' then
-            for k,currentMesh in pairs(Meshes) do
-                SplineMesh.RotateXY(currentMesh)
-            end
-        end
-
-        SplineMesh.Cache.Set(self.Model, Meshes)
+    local key = 'MODEL:' .. self.Model
+    local meshes = SplineMesh.Cache.Get(key)
+    if not meshes then
+        meshes = util.GetModelMeshes(self.Model)
+        SplineMesh.Cache.Set(key, meshes)
     end
 
-    self.Meshes = Meshes
-    if not self.Meshes then return end
-
-    self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
-end
-
-function ENT:PrepareMeshes()
-    if self.FORWARD_AXIS ~= 'X' then return end
-
-    for k,currentMesh in pairs(self.Meshes) do
-        SplineMesh.RotateXY(currentMesh)
-    end
+    self.Meshes = meshes
+    self.TrackMesh = meshes and meshes[self.TrackMeshNum]
 end
 
 function ENT:CountMeshBoundingBox()
     local min, max = SplineMesh.GetBoundingBox(self.TrackMesh)
+    if self.FORWARD_AXIS == 'X' then
+        min, max = Vector(min.y, -max.x, min.z), Vector(max.y, -min.x, max.z)
+    end
 
     self.Mins = min
     self.Maxs = max
+    self.SegmentLength = max.y - min.y
 end
 
-function ENT:DeformMeshes()
-    for k,currentMesh in pairs(self.Meshes) do
-        self:DeformMesh(currentMesh)
-    end
-end
-
-function ENT:DeformMesh(MESH)
-    local segmentLength = self.Maxs.y - self.Mins.y
+function ENT:DeformMesh(mesh)
     local offset = Vector(0, -self.Mins.y, 0)
-    return SplineMesh.Deform(MESH, self.bezierSpline, segmentLength, self.ROLL, offset)
+    return SplineMesh.Deform(mesh, self.bezierSpline, self.SegmentLength, self.ROLL, offset)
 end
 
 function ENT:BuildSegmentMatricies()
     local radius = self.RADIUS * self.UNITS_IN_METER
     local length = self.LENGTH * self.UNITS_IN_METER
 
-    local segmentLength = self.Maxs.y - self.Mins.y
-    self.SegmentLength = segmentLength
+    local segmentLength = self.SegmentLength
 
     if self.CURVE then
         local arc = math.rad(math.abs(self.ANGLE)) * radius

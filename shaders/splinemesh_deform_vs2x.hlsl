@@ -30,29 +30,30 @@ VS_OUTPUT main(VS_INPUT vert) {
 	// BOX_BACK: startTangent
 	// BOX_RIGHT: endTangent
 	// BOX_LEFT: endPos
-	// BOX_TOP: offset
-	// BOX_BOTTOM: scale
+	// BOX_TOP: longitudinal offset, cos(pitch), sin(pitch)
+	// BOX_BOTTOM: source segment length
 	float3 startPos = cAmbientCubeX[0];
 	float3 startTangent = cAmbientCubeX[1];
 	float3 endTangent = cAmbientCubeY[0];
 	float3 endPos = cAmbientCubeY[1];
-	float3 offset = cAmbientCubeZ[0];
+	float3 settings = cAmbientCubeZ[0];
 	float scale = cAmbientCubeZ[1].x;
-	
-	float3 derivative0 = 3 * (startTangent - startPos);
-	float3 derivative1 = 3 * (endTangent - startTangent);
-	float3 derivative2 = 3 * (endPos - endTangent);
 
-	vert.vPos.xyz += offset;
-	float t = vert.vPos.y / scale;
+	float t = (vert.vPos.y + settings.x) / scale;
 	float3 bezier = Bezier3(t, startPos, startTangent, endTangent, endPos);
-	float3 derivative = Bezier2(t, derivative0, derivative1, derivative2);
+	float3 tangent = Bezier2(t, startTangent - startPos, endTangent - startTangent, endPos - endTangent);
+	float tangentLength = length(tangent);
+	tangent = tangentLength > 0 ? tangent / tangentLength : float3(0, 1, 0);
 
-	derivative = normalize(derivative);
-	derivative *= vert.vPos.x;
-
-	float3 pos = {derivative.y, -derivative.x, vert.vPos.z};
-	vert.vPos.xyz = bezier + pos;
+	float3 pos = bezier + float3(tangent.y * vert.vPos.x, -tangent.x * vert.vPos.x, vert.vPos.z);
+	float3 normal = float3(
+		tangent.y * vert.vNormal.x + tangent.x * vert.vNormal.y,
+		tangent.y * vert.vNormal.y - tangent.x * vert.vNormal.x,
+		vert.vNormal.z
+	);
+	float2x2 pitch = float2x2(settings.y, settings.z, -settings.z, settings.y);
+	vert.vPos.xyz = float3(mul(pitch, pos.xz).x, pos.y, mul(pitch, pos.xz).y);
+	vert.vNormal = float3(mul(pitch, normal.xz).x, normal.y, mul(pitch, normal.xz).y);
 
 	float3 world_normal;
 	float3 world_pos;
