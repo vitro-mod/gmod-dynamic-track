@@ -1,5 +1,7 @@
 include("shared.lua")
 
+local USE_SHADERS = false
+
 function ENT:CreateMesh()
     self.DummyModel = ClientsideModel("models/shadertest/vertexlit.mdl")
     -- Destroy any previous meshes
@@ -16,22 +18,28 @@ function ENT:CreateMesh()
     if not self.Meshes then return end
 
     for k,currentMesh in pairs(self.Meshes) do
-        local IMaterial = SplineMesh.Cache.Get("IMATERIAL:" .. currentMesh.material)
-        if not IMaterial then
-            IMaterial = Material(currentMesh.material)
-            local baseTexture = IMaterial:GetTexture("$basetexture"):GetName()
-            local material = self:CreateShaderMaterial(baseTexture)
-            IMaterial = material
-            SplineMesh.Cache.Set("IMATERIAL:" .. currentMesh.material, IMaterial)
+        if not USE_SHADERS then
+            self.IMaterials[k] = Material(currentMesh.material)
+            self.IMeshes[k] = Mesh()
+            self.IMeshes[k]:BuildFromTriangles(currentMesh.triangles)
+        else
+            local IMaterial = SplineMesh.Cache.Get("IMATERIAL:" .. currentMesh.material)
+            if not IMaterial then
+                IMaterial = Material(currentMesh.material)
+                local baseTexture = IMaterial:GetTexture("$basetexture"):GetName()
+                local material = self:CreateShaderMaterial(baseTexture)
+                IMaterial = material
+                SplineMesh.Cache.Set("IMATERIAL:" .. currentMesh.material, IMaterial)
+            end
+            self.IMaterials[k] = IMaterial
+            local IMesh = SplineMesh.Cache.Get("IMESH:" .. self.Model .. ":" .. k)
+            if not IMesh then
+                IMesh = Mesh()
+                IMesh:BuildFromTriangles(currentMesh.triangles)
+                SplineMesh.Cache.Set("IMESH:" .. self.Model .. ":" .. k, IMesh)
+            end
+            self.IMeshes[k] = IMesh
         end
-        self.IMaterials[k] = IMaterial
-        local IMesh = SplineMesh.Cache.Get("IMESH:" .. self.Model .. ":" .. k)
-        if not IMesh then
-            IMesh = Mesh()
-            IMesh:BuildFromTriangles(currentMesh.triangles)
-            SplineMesh.Cache.Set("IMESH:" .. self.Model .. ":" .. k, IMesh)
-        end
-        self.IMeshes[k] = IMesh
     end
 end
 
@@ -58,15 +66,17 @@ function ENT:DrawModelOrMesh(drawCollision)
 
     if not self.bezierSpline then return end
 
-    render.OverrideDepthEnable(true, true)
-    render.SuppressEngineLighting(true)
-    render.SetModelLighting(BOX_FRONT, self.bezierSpline.startPos:Unpack())
-    render.SetModelLighting(BOX_BACK, self.bezierSpline.startTangent:Unpack())
-    render.SetModelLighting(BOX_RIGHT, self.bezierSpline.endTangent:Unpack())
-    render.SetModelLighting(BOX_LEFT, self.bezierSpline.endPos:Unpack())
-    render.SetModelLighting(BOX_TOP, 0, -self.Mins.y, 0)
-    render.SetModelLighting(BOX_BOTTOM, self.SegmentLength, 0, 0)
-    self.DummyModel:DrawModel()
+    if USE_SHADERS then
+        render.OverrideDepthEnable(true, true)
+        render.SuppressEngineLighting(true)
+        render.SetModelLighting(BOX_FRONT, self.bezierSpline.startPos:Unpack())
+        render.SetModelLighting(BOX_BACK, self.bezierSpline.startTangent:Unpack())
+        render.SetModelLighting(BOX_RIGHT, self.bezierSpline.endTangent:Unpack())
+        render.SetModelLighting(BOX_LEFT, self.bezierSpline.endPos:Unpack())
+        render.SetModelLighting(BOX_TOP, 0, -self.Mins.y, 0)
+        render.SetModelLighting(BOX_BOTTOM, self.SegmentLength, 0, 0)
+        self.DummyModel:DrawModel()
+    end
     for k,imesh in pairs(self.IMeshes) do
         render.SetMaterial(self.IMaterials[k])
         for k2,v in pairs(self.matricies) do
@@ -75,8 +85,10 @@ function ENT:DrawModelOrMesh(drawCollision)
             cam.PopModelMatrix()
         end
     end
-    render.OverrideDepthEnable(false, false)
-    render.SuppressEngineLighting(false)
+    if USE_SHADERS then
+        render.OverrideDepthEnable(false, false)
+        render.SuppressEngineLighting(false)
+    end
 
     -- for k,v in pairs(self.matricies) do
         -- matrix = SplineMesh.RenderOffset * self.RenderMatrix * v
@@ -131,7 +143,7 @@ function ENT:Draw()
     self:DrawModelOrMesh(true)
     
     -- Draw the additive flashlight layers
-    render.RenderFlashlights( function() self:DrawModelOrMesh(false) end )
+    -- render.RenderFlashlights( function() self:DrawModelOrMesh(false) end )
 end
 
 function ENT:Debug(segm)

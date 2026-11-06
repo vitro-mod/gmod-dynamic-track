@@ -16,10 +16,10 @@ if InfMap then
 end
 
 if SERVER then
-    ENT.Model = "models/mn_r/mn_t_rn1.mdl"
-    ENT.TrackMeshNum = 3
-    -- ENT.Model = "models/mn_r/mn_r_noall.mdl"
-    -- ENT.TrackMeshNum = 1
+    -- ENT.Model = "models/mn_r/mn_t_rn1.mdl"
+    -- ENT.TrackMeshNum = 3
+    ENT.Model = "models/mn_r/mn_r_noall.mdl"
+    ENT.TrackMeshNum = 1
     -- ENT.Model = "models/metrostroi/tracks/tunnel256_gamma.mdl"
     -- ENT.TrackMeshNum = 3
     -- ENT.Model = "models/nekrasovskaya/tunnel_2track_round_434.mdl"
@@ -29,8 +29,8 @@ if SERVER then
     ENT.LENGTH = 50
     ENT.CURVE = false
     ENT.ROLL = 0---6.75
-    ENT.FORWARD_AXIS = 'X'
-    -- ENT.FORWARD_AXIS = 'Y'
+    -- ENT.FORWARD_AXIS = 'X'
+    ENT.FORWARD_AXIS = 'Y'
     ENT.PROFILE = {}
     ENT.profileStart = 0
     ENT.FLIP_MODEL = false
@@ -100,12 +100,12 @@ function ENT:Initialize()
         return
     end
 
-    -- self:PrepareMeshes()
+    self:PrepareMeshes()
 
     self:CountMeshBoundingBox()
     self:BuildSegmentMatricies()
     -- profiler.start('SplineMesh DeformMeshes')
-    -- self:DeformMeshes()
+    self:DeformMeshes()
     -- profiler.fin('SplineMesh DeformMeshes')
 
     if CLIENT then
@@ -184,13 +184,13 @@ function ENT:InitMeshes()
     self.TrackMesh = self.Meshes[ self.TrackMeshNum ]
 end
 
--- function ENT:PrepareMeshes()
---     if self.FORWARD_AXIS ~= 'X' then return end
+function ENT:PrepareMeshes()
+    if self.FORWARD_AXIS ~= 'X' then return end
 
---     for k,currentMesh in pairs(self.Meshes) do
---         SplineMesh.RotateXY(currentMesh)
---     end
--- end
+    for k,currentMesh in pairs(self.Meshes) do
+        SplineMesh.RotateXY(currentMesh)
+    end
+end
 
 function ENT:CountMeshBoundingBox()
     local min, max = SplineMesh.GetBoundingBox(self.TrackMesh)
